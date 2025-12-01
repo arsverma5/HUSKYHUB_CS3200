@@ -5,14 +5,18 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 from backend.db_connection import db
-from backend.simple.simple_routes import simple_routes
-from backend.ngos.ngo_routes import ngos
+
+
+from backend.students.student_routes import students
+from backend.listings.listing_routes import listings
+from backend.transactions.transaction_routes import transactions
+from backend.admin.admin_routes import admins
 
 def create_app():
     app = Flask(__name__)
 
     app.logger.setLevel(logging.DEBUG)
-    app.logger.info('API startup')
+    app.logger.info('HuskyHub API startup')
 
     # Configure file logging if needed
     #   Uncomment the code in the setup_logging function
@@ -37,19 +41,18 @@ def create_app():
     app.config["MYSQL_DATABASE_PASSWORD"] = os.getenv("MYSQL_ROOT_PASSWORD").strip()
     app.config["MYSQL_DATABASE_HOST"] = os.getenv("DB_HOST").strip()
     app.config["MYSQL_DATABASE_PORT"] = int(os.getenv("DB_PORT").strip())
-    app.config["MYSQL_DATABASE_DB"] = os.getenv(
-        "DB_NAME"
-    ).strip()  # Change this to your DB name
+    app.config["MYSQL_DATABASE_DB"] = os.getenv("DB_NAME").strip()  # Change this to your DB name
 
-    # Initialize the database object with the settings above.
-    app.logger.info("current_app(): starting the database connection")
+    # Initialize the database connection
+    app.logger.info("Initializing database connection")
     db.init_app(app)
 
-    # Register the routes from each Blueprint with the app object
-    # and give a url prefix to each
-    app.logger.info("create_app(): registering blueprints with Flask app object.")
-    app.register_blueprint(simple_routes)
-    app.register_blueprint(ngos, url_prefix="/ngo")
+    # Register HuskyHub blueprints
+    app.logger.info("Registering HuskyHub blueprints")
+    app.register_blueprint(students,      url_prefix='/students')
+    app.register_blueprint(listings,      url_prefix='/listings')
+    app.register_blueprint(transactions,  url_prefix='/transactions')
+    app.register_blueprint(admins,        url_prefix='/admin')
 
     # Don't forget to return the app object
     return app
