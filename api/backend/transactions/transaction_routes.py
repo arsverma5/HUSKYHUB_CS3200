@@ -25,11 +25,6 @@ def get_all_transactions():
         return jsonify({"error": str(e)}), 500
 
 
-from flask import Blueprint, request, jsonify
-from backend.db_connection import db
-from mysql.connector import Error
-from flask import current_app
-
 # ============================================
 # USER STORY Jessica-5: View pending service requests
 # GET /transactions
