@@ -85,6 +85,96 @@ def update_student_profile(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
+# ============================================
+# USER STORY 2.1: Create service provider profile
+# As a service provider, I want to add new service offerings 
+# ============================================
+@students.route("/students", methods=["POST"])
+def create_student_profile():
+    """Jessica-1: Create new service provider profile"""
+    try:
+        data = request.get_json()
+        current_app.logger.info('Creating new service provider profile')
+        
+        cursor = db.get_db().cursor()
+        query = """
+            INSERT INTO student (
+                firstName, lastName, email, phone, bio, 
+                campus, major, verifiedStatus, profilePhotoUrl
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        
+        cursor.execute(query, (
+            data['firstName'],
+            data['lastName'],
+            data['email'],
+            data['phone'],
+            data.get('bio', ''),
+            data.get('campus', 'BOSTN'),
+            data.get('major', ''),
+            data.get('verifiedStatus', True),
+            data.get('profilePhotoUrl', '')
+        ))
+        
+        db.get_db().commit()
+        new_id = cursor.lastrowid
+        cursor.close()
+        
+        return jsonify({
+            'message': 'Profile created successfully',
+            'stuId': new_id
+        }), 201
+        
+    except Error as e:
+        current_app.logger.error(f'Error creating profile: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+
+# ============================================
+# USER STORY 2.6: View provider metrics
+# As a service provider, I want to mark completed services and request reviews from clients so that I can build my reputation on the platform
+# ============================================
+@students.route("/students/<int:student_id>/metrics", methods=["GET"])
+def get_provider_metrics(student_id):
+    """Jessica-6: Return provider performance dashboard metrics"""
+    try:
+        current_app.logger.info(f'Getting metrics for provider {student_id}')
+        cursor = db.get_db().cursor()
+        
+        query = """
+            SELECT 
+                s.stuId,
+                CONCAT(s.firstName, ' ', s.lastName) AS provider_name,
+                COUNT(DISTINCT l.listingId) AS total_services_offered,
+                COUNT(DISTINCT CASE WHEN l.listingStatus = 'active' 
+                      THEN l.listingId END) AS active_services,
+                COUNT(DISTINCT t.transactId) AS total_bookings,
+                COUNT(DISTINCT CASE WHEN t.transactStatus = 'completed' 
+                      THEN t.transactId END) AS completed_bookings,
+                COALESCE(SUM(CASE WHEN t.transactStatus = 'completed' 
+                             THEN t.paymentAmt END), 0) AS total_earnings,
+                ROUND(AVG(r.rating), 2) AS average_rating,
+                COUNT(r.reviewId) AS total_reviews
+            FROM student s
+            LEFT JOIN listing l ON s.stuId = l.providerId
+            LEFT JOIN transact t ON l.listingId = t.listId
+            LEFT JOIN review r ON l.listingId = r.listId
+            WHERE s.stuId = %s
+            GROUP BY s.stuId, s.firstName, s.lastName
+        """
+        
+        cursor.execute(query, (student_id,))
+        result = cursor.fetchone()
+        cursor.close()
+        
+        if not result:
+            return jsonify({'error': 'Provider not found'}), 404
+        
+        return jsonify(result), 200
+        
+    except Error as e:
+        current_app.logger.error(f'Error getting metrics: {str(e)}')
+        return jsonify({'error': str(e)}), 500
 
 # ============================================
 # USER STORY 3.2: Verify student account
