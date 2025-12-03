@@ -6,7 +6,7 @@ from flask import current_app
 reviews = Blueprint("reviews", __name__)
 
 # ============================================
-# USER STORY Jessica-6: Get all reviews for provider
+# USER STORY 2.6: Get all reviews for provider
 # GET /reviews
 # ============================================
 @reviews.route("/reviews", methods=["GET"])
@@ -49,7 +49,7 @@ def get_reviews():
 
 
 # ============================================
-# USER STORY Emma-4: Create new review
+# USER STORY 1.4: Create new review
 # POST /reviews
 # ============================================
 @reviews.route("/reviews", methods=["POST"])
