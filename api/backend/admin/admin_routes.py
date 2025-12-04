@@ -1,25 +1,90 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request, jsonify
 from backend.db_connection import db
-from mysql.connector import Error
-from flask import current_app
 
-# Create Blueprint
-admins = Blueprint("admins", __name__)
+admins = Blueprint('admins', __name__)
 
-# Test route
-@admins.route("/test", methods=["GET"])
-def test():
-    return jsonify({"message": "Admin blueprint works!"}), 200
 
-# Get all reports
 @admins.route("/reports", methods=["GET"])
 def get_all_reports():
     try:
         cursor = db.get_db().cursor()
-        query = "SELECT * FROM report LIMIT 10"
+        query = """
+            SELECT 
+                r.reportId,
+                r.reason,
+                CASE
+                    WHEN reported.accountStatus = 'suspended' THEN 'URGENT'
+                    WHEN l.listingId IS NOT NULL AND l.listingStatus = 'active' THEN 'HIGH'
+                    WHEN DATEDIFF(CURRENT_TIMESTAMP, r.reportDate) > 7 THEN 'HIGH'
+                    ELSE 'MEDIUM'
+                END AS priority 
+            FROM report r
+            JOIN student reporter ON r.reportingStuId = reporter.stuId
+            JOIN student reported ON r.reportedStuId = reported.stuId
+            LEFT JOIN listing l ON r.reportedListingId = l.listingId
+            WHERE r.resolutionDate IS NULL
+            ORDER BY
+                CASE
+                    WHEN reported.accountStatus = 'suspended' THEN 1
+                    WHEN l.listingId IS NOT NULL AND l.listingStatus = 'active' THEN 2
+                    WHEN DATEDIFF(CURRENT_TIMESTAMP, r.reportDate) > 7 THEN 2
+                    ELSE 3
+                END,
+                r.reportDate DESC
+        """
         cursor.execute(query)
-        reports_data = cursor.fetchall()
+        reports = cursor.fetchall()
         cursor.close()
-        return jsonify(reports_data), 200
-    except Error as e:
+        return jsonify(reports), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@admins.route("/reports/<int:report_id>", methods=["GET"])
+def get_report_by_id(report_id):
+    try:
+        cursor = db.get_db().cursor()
+        query = """
+            SELECT
+                r.reportId,
+                r.reportDate,
+                r.resolutionDate,
+                r.reason,
+                r.reportDetails,
+                reporter.stuId AS reporter_id,
+                reporter.firstName AS reporter_fname,
+                reporter.lastName AS reporter_lname,
+                reporter.email AS reporter_email,
+                reporter.accountStatus AS reporter_account_status,
+                reported.stuId AS reported_student_id,
+                reported.firstName AS reported_fname,
+                reported.lastName AS reported_lname,
+                reported.email AS reported_email,
+                reported.accountStatus AS reported_account_status,
+                l.listingId AS reported_listing_id,
+                l.title AS listing_title,
+                l.listingStatus,
+                c.name AS category_name,
+                CASE
+                    WHEN reported.accountStatus = 'suspended' THEN 'URGENT'
+                    WHEN l.listingId IS NOT NULL AND l.listingStatus = 'active' THEN 'HIGH'
+                    WHEN DATEDIFF(CURRENT_TIMESTAMP, r.reportDate) > 7 THEN 'HIGH'
+                    ELSE 'MEDIUM'
+                END AS priority
+            FROM report r
+            JOIN student reporter ON r.reportingStuId = reporter.stuId
+            JOIN student reported ON r.reportedStuId = reported.stuId
+            LEFT JOIN listing l ON r.reportedListingId = l.listingId
+            LEFT JOIN category c ON l.categoryId = c.categoryId
+            WHERE r.reportId = %s
+        """
+        cursor.execute(query, (report_id,))
+        report = cursor.fetchone()
+        cursor.close()
+        
+        if report is None:
+            return jsonify({"error": "Report not found"}), 404
+        
+        return jsonify(report), 200
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
