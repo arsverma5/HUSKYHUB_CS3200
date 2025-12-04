@@ -9,9 +9,11 @@ st.title("Reports Dashboard")
 # API URL
 API_URL = "http://web-api:4000"
 
-# Initialize session state for search results
+# Initialize session state for search results/resolve form
 if "search_result" not in st.session_state:
     st.session_state.search_result = None
+if "show_resolve_form" not in st.session_state:
+    st.session_state.show_resolve_form = False
 
 # search section
 st.subheader("🔍 Search Report by ID")
@@ -102,20 +104,73 @@ if st.session_state.search_result is not None:
             else:
                 st.markdown("**📦 Reported Listing**")
                 st.write("No listing associated")
-        
-        # Admin actions
+    
         st.divider()
         st.markdown("**⚡ Admin Actions**")
-        col5, col6, col7 = st.columns(3)
         
-        with col5:
-            st.button("✅ Resolve Report", use_container_width=True)
-        with col6:
-            st.button("🚫 Suspend User", use_container_width=True)
-        with col7:
-            st.button("🗑️ Remove Listing", use_container_width=True)
+        # Only show resolve button if not already resolved
+        if not report.get('resolutionDate'):
+            col5, col6, col7 = st.columns(3)
+            
+            with col5:
+                    if st.button("✅ Resolve Report", use_container_width=True, key="resolve_btn"):
+                        st.session_state.show_resolve_form = True
+            
+            with col6:
+                if st.button("🚫 Suspend User", use_container_width=True, key="suspend_btn"):
+                    st.info("Suspend functionality coming soon")
+            
+            with col7:
+                if st.button("🗑️ Remove Listing", use_container_width=True, key="remove_btn"):
+                    st.info("Remove listing functionality coming soon")
 
-# ============== ALL REPORTS SECTION ==============
+                    # Resolve form
+            if st.session_state.show_resolve_form:
+                st.divider()
+                st.subheader("📝 Resolve Report")
+                
+                with st.form("resolve_form"):
+                    resolution_notes = st.text_area(
+                        "Resolution Notes",
+                        placeholder="Enter details about how this report was resolved...",
+                        height=100
+                    )
+                    
+                    col_submit, col_cancel = st.columns(2)
+                    
+                    with col_submit:
+                        submit = st.form_submit_button("✅ Confirm", use_container_width=True)
+                    with col_cancel:
+                        cancel = st.form_submit_button("❌ Cancel", use_container_width=True)
+                    
+                    if submit:
+                        if not resolution_notes.strip():
+                            st.error("Please enter resolution notes")
+                        else:
+                            try:
+                                response = requests.put(
+                                    f"{API_URL}/admin/reports/{report.get('reportId')}",
+                                    json={"resolution_notes": resolution_notes}
+                                )
+                                
+                                if response.status_code == 200:
+                                    st.success("✅ Report resolved successfully!")
+                                    st.session_state.show_resolve_form = False
+                                    st.session_state.search_result = None
+                                    st.rerun()
+                                else:
+                                    st.error(f"Error: {response.json().get('error', 'Unknown error')}")
+                                    
+                            except requests.exceptions.ConnectionError:
+                                st.error("Could not connect to API")
+                    
+                    if cancel:
+                        st.session_state.show_resolve_form = False
+                        st.rerun()
+        else:
+            st.success("✅ This report has already been resolved")
+
+# All reports section
 st.divider()
 st.subheader("📋 All Pending Reports")
 
@@ -177,6 +232,6 @@ try:
         st.error(f"Error fetching reports: {response.status_code}")
         
 except requests.exceptions.ConnectionError:
-    st.error("❌ Could not connect to API. Make sure Flask is running.")
+    st.error("Could not connect to API. Make sure Flask is running.")
 except Exception as e:
     st.error(f"Error: {e}")
