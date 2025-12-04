@@ -7,7 +7,7 @@ from flask import current_app
 listings = Blueprint("listings", __name__)
 
 # ============================================
-# USER STORY Jessica-2: Create new service offering
+# USER STORY 2.2: Create new service offering
 # POST /listings
 # ============================================
 @listings.route("/listings", methods=["POST"])
@@ -58,7 +58,7 @@ def create_listing():
 
 
 # ============================================
-# USER STORY Jessica-3: Update listing price/description
+# USER STORY 2.3: Update listing price/description
 # PUT /listings/{id}
 # ============================================
 @listings.route("/listings/<int:listing_id>", methods=["PUT"])
@@ -113,7 +113,7 @@ def update_listing(listing_id):
 
 
 # ============================================
-# USER STORY Jessica-3: Remove service offering
+# USER STORY 2.3: Remove service offering
 # DELETE /listings/{id}
 # ============================================
 @listings.route("/listings/<int:listing_id>", methods=["DELETE"])
@@ -146,7 +146,7 @@ def delete_listing(listing_id):
 
 
 # ============================================
-# USER STORY Jessica-4: Add availability slots
+# USER STORY 2.4: Add availability slots
 # POST /listings/{id}/availability
 # ============================================
 @listings.route("/listings/<int:listing_id>/availability", methods=["POST"])
@@ -190,7 +190,7 @@ def add_availability(listing_id):
 
 
 # ============================================
-# USER STORY Jessica-4: Update availability slot
+# USER STORY 2.4: Update availability slot
 # PUT /listings/{id}/availability
 # ============================================
 @listings.route("/listings/<int:listing_id>/availability/<int:availability_id>", methods=["PUT"])
@@ -229,7 +229,7 @@ def update_availability(listing_id, availability_id):
 
 
 # ============================================
-# USER STORY Jessica-4: Delete availability slot
+# USER STORY 2.4: Delete availability slot
 # DELETE /listings/{id}/availability
 # ============================================
 @listings.route("/listings/<int:listing_id>/availability/<int:availability_id>", methods=["DELETE"])

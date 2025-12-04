@@ -26,7 +26,7 @@ def get_all_transactions():
 
 
 # ============================================
-# USER STORY Jessica-5: View pending service requests
+# USER STORY 2.5: View pending service requests
 # GET /transactions
 # ============================================
 @transactions.route("/transactions", methods=["GET"])
@@ -100,7 +100,7 @@ def get_transactions():
 
 
 # ============================================
-# USER STORY Jessica-5: Accept or decline booking request
+# USER STORY 2.5: Accept or decline booking request
 # PUT /transactions/{id}
 # ============================================
 @transactions.route("/transactions/<int:transaction_id>", methods=["PUT"])
@@ -142,7 +142,7 @@ def update_transaction(transaction_id):
 
 
 # ============================================
-# USER STORY Jessica-6: Mark service as completed
+# USER STORY 2.6: Mark service as completed
 # PUT /transactions/{id}/complete
 # ============================================
 @transactions.route("/transactions/<int:transaction_id>/complete", methods=["PUT"])
