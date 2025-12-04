@@ -3,6 +3,9 @@ from backend.db_connection import db
 from mysql.connector import Error
 from flask import current_app
 
+# Create Blueprint
+listings = Blueprint("listings", __name__)
+
 # ============================================
 # USER STORY Jessica-2: Create new service offering
 # POST /listings
