@@ -59,15 +59,15 @@ def ClassificationNav():
 
 
 
+#### ------------------------ Timothy Admin Role ------------------------
+def TimothyAdminHomeNav():
+    st.sidebar.page_link("pages/30_Timothy_Admin_Home.py", label="Dashboard", icon="✅")
 
+def TimothyAdminReportsNav():
+    st.sidebar.page_link("pages/31_Reports_Management.py", label="Reports", icon="📋")
 
-#### ------------------------ System Admin Role ------------------------
-def AdminPageNav():
-    st.sidebar.page_link("pages/20_Admin_Home.py", label="System Admin", icon="🖥️")
-    st.sidebar.page_link(
-        "pages/21_ML_Model_Mgmt.py", label="ML Model Management", icon="🏢"
-    )
-
+def TimothyAdminUsersNav():
+    st.sidebar.page_link("pages/32_User_Management.py", label="User Management", icon="👥")
 
 # --------------------------------Links Function -----------------------------------------------
 def SideBarLinks(show_home=False):
@@ -106,9 +106,11 @@ def SideBarLinks(show_home=False):
             ClassificationNav()
             
 
-        # If the user is an administrator, give them access to the administrator pages
-        if st.session_state["role"] == "administrator":
-            AdminPageNav()
+        # If the user is Timothy (platform admin), show admin pages
+        if st.session_state["role"] == "admin":
+            TimothyAdminHomeNav()
+            TimothyAdminReportsNav()
+            TimothyAdminUsersNav()
 
     # Always show the About page at the bottom of the list of links
     # AboutPageNav() -- temporarily disabled cuz i deleted it, but we can add in pages after

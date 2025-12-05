@@ -233,7 +233,8 @@ INSERT INTO admin (adminId, firstName, lastName, email) VALUES
 
 
 -- Insert sample reports (optional - for testing admin queries)
-INSERT INTO report (reportingStuId, reportedStuId, reportDate, reason) VALUES
-(1, 4, NOW(), 'Inappropriate listing content');
+INSERT INTO report (reportId, reportingStuId, reportedStuId, reportedListingId, adminId, reportDate, resolutionDate, reason, reportDetails) 
+VALUES
+(1, 1, 4, NULL, NULL, NOW(), NULL, 'Inappropriate listing content', 'User posted suspicious pricing and contact information');
 
 
