@@ -66,6 +66,8 @@ def TimothyAdminHomeNav():
 def TimothyAdminReportsNav():
     st.sidebar.page_link("pages/31_Reports_Management.py", label="Reports", icon="📋")
 
+def TimothyAdminUsersNav():
+    st.sidebar.page_link("pages/32_User_Management.py", label="User Management", icon="👥")
 
 # --------------------------------Links Function -----------------------------------------------
 def SideBarLinks(show_home=False):
@@ -108,6 +110,7 @@ def SideBarLinks(show_home=False):
         if st.session_state["role"] == "admin":
             TimothyAdminHomeNav()
             TimothyAdminReportsNav()
+            TimothyAdminUsersNav()
 
     # Always show the About page at the bottom of the list of links
     # AboutPageNav() -- temporarily disabled cuz i deleted it, but we can add in pages after
