@@ -23,3 +23,12 @@ if st.button('See All Reports',
     st.session_state['role'] = 'admin'
     st.session_state['first_name'] = 'Timothy'
     st.switch_page('pages/31_Reports_Management.py')
+
+# See User Management page button
+if st.button('See User Management', 
+            type='primary', 
+            use_container_width=True):
+    st.session_state['authenticated'] = True
+    st.session_state['role'] = 'admin'
+    st.session_state['first_name'] = 'Timothy'
+    st.switch_page('pages/32_User_Management.py')
