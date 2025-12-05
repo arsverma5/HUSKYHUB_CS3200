@@ -3,7 +3,9 @@ from backend.db_connection import db
 
 admins = Blueprint('admins', __name__)
 
+# ---------------
 # REPORTS ROUTES
+# ---------------
 
 # User story 3.1: 
 @admins.route("/reports", methods=["GET"])
@@ -129,7 +131,9 @@ def update_report(report_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+#-------------------
 # SUSPENSION ROUTES
+#------------------
 
 # User story 3.5 - get all suspensions
 @admins.route("/suspensions", methods=["GET"])
