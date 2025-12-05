@@ -67,7 +67,10 @@ def TimothyAdminReportsNav():
     st.sidebar.page_link("pages/31_Reports_Management.py", label="Reports", icon="📋")
 
 def TimothyAdminUsersNav():
-    st.sidebar.page_link("pages/32_User_Management.py", label="User Management", icon="👥")
+    st.sidebar.page_link("pages/32_User_Management.py", label="Users", icon="👥")
+
+def TimothyAdminListingsNav():
+    st.sidebar.page_link("pages/33_Listing_Management.py", label="Listings", icon="🛠️")
 
 # --------------------------------Links Function -----------------------------------------------
 def SideBarLinks(show_home=False):
@@ -111,6 +114,7 @@ def SideBarLinks(show_home=False):
             TimothyAdminHomeNav()
             TimothyAdminReportsNav()
             TimothyAdminUsersNav()
+            TimothyAdminListingsNav()
 
     # Always show the About page at the bottom of the list of links
     # AboutPageNav() -- temporarily disabled cuz i deleted it, but we can add in pages after
