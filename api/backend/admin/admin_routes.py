@@ -16,6 +16,7 @@ def get_all_reports():
             SELECT 
                 r.reportId,
                 r.reason,
+                reported.stuId AS reported_student_id,
                 CASE
                     WHEN reported.accountStatus = 'suspended' THEN 'URGENT'
                     WHEN l.listingId IS NOT NULL AND l.listingStatus = 'active' THEN 'HIGH'
