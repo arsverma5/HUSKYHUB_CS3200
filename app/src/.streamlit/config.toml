@@ -19,4 +19,8 @@ primaryColor="#6550e6"
 font="monospace"
 
 [server]
-runOnSave = true
+fileWatcherType = "poll"
+runOnSave = false
+
+[browser]
+gatherUsageStats = false
