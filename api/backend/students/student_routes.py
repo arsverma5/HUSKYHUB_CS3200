@@ -305,6 +305,24 @@ def suspend_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
+@students.route("/students/<int:student_id>/unsuspend", methods=["PUT"])
+def unsuspend_student(student_id):
+    try:
+        cursor = db.get_db().cursor()
+        
+        query = """
+            UPDATE student
+            SET accountStatus = 'active'
+            WHERE stuId = %s
+        """
+        
+        cursor.execute(query, (student_id,))
+        db.get_db().commit()
+        cursor.close()
+        
+        return jsonify({"message": "Student unsuspended successfully"}), 200
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================
 # USER STORY 4.4: Sort users by registration date (PM analytics)
