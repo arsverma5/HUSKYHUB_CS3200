@@ -332,11 +332,12 @@ def get_provider_metrics(student_id):
         current_app.logger.error(f'Error getting metrics: {str(e)}')
         return jsonify({'error': str(e)}), 500
 
+'''
 # ============================================
 # USER STORY 3.2: Verify student account
 # As an admin, I want to verify student accounts
 # ============================================
-@students.route("/students/<int:student_id>/verify", methods=["PUT"])
+@students.route("/<int:student_id>/verify", methods=["PUT"])
 def verify_student(student_id):
     try:
         cursor = db.get_db().cursor()
@@ -361,7 +362,7 @@ def verify_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
-
+'''
 # ============================================
 # USER STORY 3.6: Search for users
 # As an admin, I want to search for specific users by name, email
@@ -435,13 +436,13 @@ def get_student_ratings(student_id):
         return jsonify(rating), 200
     except Error as e:
         return jsonify({"error": str(e)}), 500
-
+'''
 
 # ============================================
 # USER STORY 3.5: Suspend student account
 # As an admin, I want to suspend accounts
 # ============================================
-@students.route("/students/<int:student_id>/suspend", methods=["PUT"])
+@students.route("/<int:student_id>/suspend", methods=["PUT"])
 def suspend_student(student_id):
     try:
         cursor = db.get_db().cursor()
@@ -461,7 +462,7 @@ def suspend_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
-@students.route("/students/<int:student_id>/unsuspend", methods=["PUT"])
+@students.route("/<int:student_id>/unsuspend", methods=["PUT"])
 def unsuspend_student(student_id):
     try:
         cursor = db.get_db().cursor()
@@ -480,6 +481,7 @@ def unsuspend_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
+'''
 # ============================================
 # USER STORY 4.4: Sort users by registration date (PM analytics)
 # As a PM, I want to filter and sort users by registration date
