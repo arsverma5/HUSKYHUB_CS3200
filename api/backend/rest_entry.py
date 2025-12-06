@@ -11,6 +11,7 @@ from backend.students.student_routes import students
 from backend.listings.listing_routes import listings
 from backend.transactions.transaction_routes import transactions
 from backend.admin.admin_routes import admins
+from backend.review.review_routes import reviews
 
 def create_app():
     app = Flask(__name__)
@@ -53,6 +54,8 @@ def create_app():
     app.register_blueprint(listings,      url_prefix='/listings')
     app.register_blueprint(transactions,  url_prefix='/transactions')
     app.register_blueprint(admins,        url_prefix='/admin')
+    app.register_blueprint(reviews,       url_prefix='/reviews')
+
 
     # Don't forget to return the app object
     return app
