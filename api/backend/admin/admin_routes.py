@@ -7,7 +7,6 @@ admins = Blueprint('admins', __name__)
 # REPORTS ROUTES
 # ---------------
 
-# User story 3.1: 
 @admins.route("/reports", methods=["GET"])
 def get_all_reports():
     try:
@@ -16,6 +15,7 @@ def get_all_reports():
             SELECT 
                 r.reportId,
                 r.reason,
+                reported.stuId AS reported_student_id,
                 CASE
                     WHEN reported.accountStatus = 'suspended' THEN 'URGENT'
                     WHEN l.listingId IS NOT NULL AND l.listingStatus = 'active' THEN 'HIGH'
@@ -43,7 +43,7 @@ def get_all_reports():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# User Story 3.1
+
 @admins.route("/reports/<int:report_id>", methods=["GET"])
 def get_report_by_id(report_id):
     try:
@@ -93,7 +93,7 @@ def get_report_by_id(report_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# User Story 3.1 - Update/resolve a report
+
 @admins.route("/reports/<int:report_id>", methods=["PUT"])
 def update_report(report_id):
     try:
@@ -101,7 +101,6 @@ def update_report(report_id):
         
         cursor = db.get_db().cursor()
         
-        # Check if report exists
         cursor.execute("SELECT * FROM report WHERE reportId = %s", (report_id,))
         report = cursor.fetchone()
         
@@ -109,7 +108,6 @@ def update_report(report_id):
             cursor.close()
             return jsonify({"error": "Report not found"}), 404
         
-        # Update the report with resolution
         query = """
             UPDATE report
             SET resolutionDate = CURRENT_TIMESTAMP,
@@ -130,12 +128,12 @@ def update_report(report_id):
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-#-------------------
-# SUSPENSION ROUTES
-#------------------
 
-# User story 3.5 - get all suspensions
+
+# -------------------
+# SUSPENSION ROUTES
+# -------------------
+
 @admins.route("/suspensions", methods=["GET"])
 def get_all_suspensions():
     try:
@@ -143,24 +141,25 @@ def get_all_suspensions():
         query = """
             SELECT
                 s.suspensionId,
-                s.type
+                s.type,
                 s.startDate,
                 s.endDate,
+                s.stuId,
                 st.firstName,
                 st.lastName,
                 st.email,
-                st.accountStatus
+                st.accountStatus,
                 r.reportId,
-                r.reason AS report reason,
+                r.reason AS report_reason,
                 CASE
                     WHEN s.endDate IS NULL THEN 'PERMANENT'
-                    WEHN s.ednDate < CURRENT_TIMESTAMP THEN 'EXPIRED'
+                    WHEN s.endDate < CURRENT_TIMESTAMP THEN 'EXPIRED'
                     ELSE 'ACTIVE'
                 END AS status
-                FROM suspension s
-                JOIN student st ON s.stuId = st.stuId
-                LEFT JOIN report r ON s.reportId = r.reportId
-                ORDER BY s.startDate DESC
+            FROM suspension s
+            JOIN student st ON s.stuId = st.stuId
+            LEFT JOIN report r ON s.reportId = r.reportId
+            ORDER BY s.startDate DESC
         """
         cursor.execute(query)
         suspensions = cursor.fetchall()
@@ -169,71 +168,66 @@ def get_all_suspensions():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# User story 3.5 - create a new suspension
+
 @admins.route("/suspensions", methods=['POST'])
 def create_suspension():
     try:
         data = request.get_json()
-        # required fields
-        stu_id = data.get("studId")
-        suspension_type = data.get("type", "temporary") #temporary or permanent
-        # optional fields
+        
+        stu_id = data.get("stuId")  # Fixed: was "studId"
+        suspension_type = data.get("type", "temporary")
         report_id = data.get("reportId")
-        end_date = data.get("endDate") #NULL for permanent
+        end_date = data.get("endDate")
+        
         if not stu_id:
             return jsonify({"error": "stuId is required"}), 400
         
         cursor = db.get_db().cursor()
 
-        cursor.execute("SELECT * FROM student WHERE studId = %s", (stu_id,))
+        cursor.execute("SELECT * FROM student WHERE stuId = %s", (stu_id,))  # Fixed: was "studId"
         student = cursor.fetchone()
         
         if student is None:
             cursor.close()
             return jsonify({"error": "Student not found"}), 404
         
-        #create suspension record
         insert_query = """
             INSERT INTO suspension (stuId, reportId, type, startDate, endDate)
             VALUES (%s, %s, %s, CURRENT_TIMESTAMP, %s)
         """
         cursor.execute(insert_query, (stu_id, report_id, suspension_type, end_date))
 
-        #update student acct status to suspended
         cursor.execute(
             "UPDATE student SET accountStatus = 'suspended' WHERE stuId = %s",
             (stu_id,)
         )
 
-        #deactivate all listings by that acct
         cursor.execute(
             "UPDATE listing SET listingStatus = 'removed' WHERE providerId = %s AND listingStatus = 'active'",
             (stu_id,)
         )
 
-        #Cancel all pending transactions
         cursor.execute("""
-                       UPDATE transact t
-                       JOIN listing l ON t.listId = l.listingId
-                       SET t.transactStatus = 'cancelled'
-                       WHERE l.providerId = %s AND t.transactStatus IN ('requested', 'confirmed')
-                       """, (stu_id,))
+            UPDATE transact t
+            JOIN listing l ON t.listId = l.listingId
+            SET t.transactStatus = 'cancelled'
+            WHERE l.providerId = %s AND t.transactStatus IN ('requested', 'confirmed')
+        """, (stu_id,))
         
         db.get_db().commit()
 
-        #get the new suspension ID
         suspension_id = cursor.lastrowid
         cursor.close()
 
         return jsonify({
-            "message": "Suspension created succesfully",
+            "message": "Suspension created successfully",
             "suspensionId": suspension_id
         }), 201
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-# User story 3.5 - get a specific suspension by id
+
+
 @admins.route("/suspensions/<int:suspension_id>", methods=["GET"])
 def get_suspension_by_id(suspension_id):
     try:
@@ -261,11 +255,11 @@ def get_suspension_by_id(suspension_id):
                 END AS status,
                 DATEDIFF(s.endDate, CURRENT_TIMESTAMP) AS days_remaining
             FROM suspension s
-            JOIN student st ON s.stuId = st.stuID
+            JOIN student st ON s.stuId = st.stuId
             LEFT JOIN report r ON s.reportId = r.reportId
             WHERE s.suspensionId = %s
         """
-        cursor.execute(query, (suspension_id))
+        cursor.execute(query, (suspension_id,))  # Fixed: added comma
         suspension = cursor.fetchone()
         cursor.close()
 
@@ -275,8 +269,8 @@ def get_suspension_by_id(suspension_id):
         return jsonify(suspension), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-#User story 3.5 - update a suspension (extend endDate, change type)
+
+
 @admins.route("/suspensions/<int:suspension_id>", methods=["PUT"])
 def update_suspension(suspension_id):
     try:
@@ -284,7 +278,6 @@ def update_suspension(suspension_id):
         
         cursor = db.get_db().cursor()
         
-        # Check if suspension exists
         cursor.execute("SELECT * FROM suspension WHERE suspensionId = %s", (suspension_id,))
         suspension = cursor.fetchone()
         
@@ -292,7 +285,6 @@ def update_suspension(suspension_id):
             cursor.close()
             return jsonify({"error": "Suspension not found"}), 404
         
-        # Build update query based on provided fields
         updates = []
         params = []
         
@@ -307,7 +299,6 @@ def update_suspension(suspension_id):
             updates.append("type = %s")
             params.append(data["type"])
             
-            # If changing to permanent, set endDate to NULL
             if data["type"] == "permanent":
                 updates.append("endDate = NULL")
         
@@ -315,7 +306,6 @@ def update_suspension(suspension_id):
             cursor.close()
             return jsonify({"error": "No valid fields to update"}), 400
         
-        # Execute update
         query = f"UPDATE suspension SET {', '.join(updates)} WHERE suspensionId = %s"
         params.append(suspension_id)
         
@@ -331,13 +321,12 @@ def update_suspension(suspension_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# user story 3.5 - remove a suspension early
+
 @admins.route("/suspensions/<int:suspension_id>", methods=["DELETE"])
 def lift_suspension(suspension_id):
     try:
         cursor = db.get_db().cursor()
         
-        # Get suspension details
         cursor.execute("""
             SELECT s.*, st.stuId 
             FROM suspension s 
@@ -352,16 +341,11 @@ def lift_suspension(suspension_id):
         
         stu_id = suspension["stuId"]
         
-        # Option 1: Delete the suspension record
-        # cursor.execute("DELETE FROM suspension WHERE suspensionId = %s", (suspension_id,))
-        
-        # Option 2: Set endDate to now (keeps record for history)
         cursor.execute(
             "UPDATE suspension SET endDate = CURRENT_TIMESTAMP WHERE suspensionId = %s",
             (suspension_id,)
         )
         
-        # Check if student has any other active suspensions
         cursor.execute("""
             SELECT COUNT(*) as active_count 
             FROM suspension 
@@ -371,7 +355,6 @@ def lift_suspension(suspension_id):
         """, (stu_id, suspension_id))
         result = cursor.fetchone()
         
-        # Only reactivate account if no other active suspensions
         if result["active_count"] == 0:
             cursor.execute(
                 "UPDATE student SET accountStatus = 'active' WHERE stuId = %s",
@@ -389,4 +372,3 @@ def lift_suspension(suspension_id):
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    

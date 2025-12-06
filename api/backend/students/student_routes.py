@@ -210,7 +210,7 @@ def update_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
-
+'''
 # ============================================
 # GET /students/{id}/ratings
 # Return student's average rating
@@ -249,18 +249,34 @@ def get_student_ratings(student_id):
         return jsonify(rating_data), 200
     except Error as e:
         return jsonify({"error": str(e)}), 500
-
+'''
 
 # ============================================
 # GET /students/{id}/metrics
 # Return provider performance dashboard
 # ============================================
-"""
-    Provider metrics: bookings, services, rating, earnings
-    Used by: [Jessica-6]
-"""
-@students.route("/<int:student_id>/metrics", methods=["GET"])
-def get_student_metrics(student_id):
+@students.route("/<int:student_id>/suspend", methods=["PUT"])
+def suspend_student(student_id):
+    try:
+        cursor = db.get_db().cursor()
+        
+        # Update student account status
+        query = """
+            UPDATE student
+            SET accountStatus = 'suspended'
+            WHERE stuId = %s
+        """
+        
+        cursor.execute(query, (student_id,))
+        db.get_db().commit()
+        cursor.close()
+        
+        return jsonify({"message": "Student suspended successfully"}), 200
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+@students.route("/<int:student_id>/unsuspend", methods=["PUT"])
+def unsuspend_student(student_id):
     try:
         cursor = db.get_db().cursor()
         
@@ -291,7 +307,7 @@ def get_student_metrics(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
-
+'''
 # ============================================
 # GET /students/provider/metrics
 # Return all providers with metrics

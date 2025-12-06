@@ -67,7 +67,23 @@ def TimothyAdminReportsNav():
     st.sidebar.page_link("pages/31_Reports_Management.py", label="Reports", icon="📋")
 
 def TimothyAdminUsersNav():
-    st.sidebar.page_link("pages/32_User_Management.py", label="User Management", icon="👥")
+    st.sidebar.page_link("pages/32_User_Management.py", label="Users", icon="👥")
+
+def TimothyAdminListingsNav():
+    st.sidebar.page_link("pages/33_Listing_Management.py", label="Listings", icon="🛠️")
+    
+### -------------------------- Chris PM Role ------------------------
+def ChrisPMHomeNav():
+    st.sidebar.page_link("pages/40_Chris_PM_Home.py", label="Dashboard", icon="🐾")
+
+def ChrisPMGrowthDashboardNav():
+    st.sidebar.page_link("pages/41_Growth_Dashboard.py", label="Growth Dashboard", icon="📈")
+    
+def ChrisPMCategoryAnalyticsNav():
+    st.sidebar.page_link("pages/42_Category_Analytics.py", label="Category Analytics", icon="📊")
+    
+def ChrisPMUserAnalyticsNav():
+    st.sidebar.page_link("pages/43_User_Analytics.py", label="User Analytics", icon="👥")
 
 # --------------------------------Links Function -----------------------------------------------
 def SideBarLinks(show_home=False):
@@ -111,6 +127,14 @@ def SideBarLinks(show_home=False):
             TimothyAdminHomeNav()
             TimothyAdminReportsNav()
             TimothyAdminUsersNav()
+            TimothyAdminListingsNav()
+            
+        # If the user is Chris (Product Manager), show product manager pages
+        if st.session_state["role"] == "PM":
+            ChrisPMHomeNav()
+            ChrisPMGrowthDashboardNav()
+            ChrisPMCategoryAnalyticsNav()
+            ChrisPMUserAnalyticsNav()
 
     # Always show the About page at the bottom of the list of links
     # AboutPageNav() -- temporarily disabled cuz i deleted it, but we can add in pages after
