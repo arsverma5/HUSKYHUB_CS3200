@@ -6,6 +6,162 @@ from flask import current_app
 # Create Blueprint for student routes
 students = Blueprint("students", __name__)
 
+
+'''
+- write an api call that gets all students: and u can input a few different things
+like sort by, etc, all in one query
+'''
+
+
+'''
+GET /students
+Return list of students searchable and filterable
+Used by: [Tim-6, Emma-2, Chris-1]
+Covers: Search, filter by status, sort by various criteria
+'''
+@students.route("/", methods=["GET"])
+def get_all_students():
+    """
+    Query params:
+    - q: search term (firstName, lastName, email, phone)
+    - status: filter by accountStatus (active, suspended, deleted)
+    - sortBy: sort by (status, joinDate, lastName)
+    - campus: filter by campus
+    """
+    try:
+        current_app.logger.info('GET /students - Getting all students')
+        
+        # get query parameters
+        search_term = request.args.get("q", "")
+        status = request.args.get("status", "")
+        sort_by = request.args.get("sortBy", "lastName")
+        campus = request.args.get("campus", "")
+        
+        cursor = db.get_db().cursor()
+        
+        query = """
+            SELECT
+                stuId,
+                CONCAT(firstName, ' ', lastName) AS full_name,
+                firstName,
+                lastName,
+                email,
+                phone,
+                accountStatus,
+                verifiedStatus,
+                campus,
+                major,
+                joinDate
+            FROM student
+            WHERE 1=1
+        """
+        
+        params = []
+        # add search filter if provided (Tim-6, Emma-2)
+        if search_term:
+            query += """
+                AND (firstName LIKE %s
+                     OR lastName LIKE %s
+                     OR email LIKE %s
+                     OR phone LIKE %s
+                     OR CONCAT(firstName, ' ', lastName) LIKE %s)
+            """
+            search_pattern = f"%{search_term}%"
+            params.extend([search_pattern] * 5)
+        
+        # add status filter if provided
+        if status:
+            query += " AND accountStatus = %s"
+            params.append(status)
+        
+        # add campus filter if provided
+        if campus:
+            query += " AND campus = %s"
+            params.append(campus)
+        
+        # add sorting
+        if sort_by == "status":
+            # tim wants suspended first
+            query += """
+                ORDER BY
+                    CASE accountStatus
+                        WHEN 'suspended' THEN 1
+                        WHEN 'active' THEN 2
+                        ELSE 3
+                    END,
+                    lastName, firstName
+            """
+        elif sort_by == "joinDate":
+            # chris wants newest first
+            query += " ORDER BY joinDate DESC"
+        else:
+            # default alphabetical
+            query += " ORDER BY lastName, firstName"
+        
+        cursor.execute(query, params)
+        students_data = cursor.fetchall()  # multiple students
+        cursor.close()
+        
+        current_app.logger.info(f'Successfully retrieved {len(students_data)} students')
+        return jsonify(students_data), 200
+    except Error as e:
+        current_app.logger.error(f'Database error: {str(e)}')
+        return jsonify({"error": str(e)}), 500
+
+
+'''
+GET /students/{id}
+Return detailed student profile
+Used by: [Tim-6, Emma-2, Jessica-1]
+'''
+@students.route("/<int:student_id>", methods=["GET"])
+def get_student_profile(student_id):
+    try:
+        current_app.logger.info(f'GET /students/{student_id} - Getting student profile')
+        cursor = db.get_db().cursor()
+        
+        query = """
+            SELECT
+                s.stuId,
+                s.firstName,
+                s.lastName,
+                s.email,
+                s.phone,
+                s.major,
+                s.bio,
+                s.verifiedStatus,
+                s.accountStatus,
+                s.campus,
+                s.profilePhotoUrl,
+                s.joinDate,
+                COUNT(DISTINCT l.listingId) AS total_services,
+                AVG(r.rating) AS avg_rating,
+                COUNT(DISTINCT r.reviewId) AS total_reviews
+            FROM student s
+            LEFT JOIN listing l ON s.stuId = l.providerId
+            LEFT JOIN review r ON l.listingId = r.listId
+            WHERE s.stuId = %s
+            GROUP BY s.stuId, s.firstName, s.lastName, s.email, s.phone,
+                     s.major, s.bio, s.verifiedStatus, s.accountStatus,
+                     s.campus, s.profilePhotoUrl, s.joinDate
+        """
+        
+        cursor.execute(query, (student_id,))
+        profile = cursor.fetchone()  # 1 student
+        cursor.close()
+        
+        if not profile:
+            return jsonify({"error": "Student not found"}), 404
+            
+        return jsonify(profile), 200
+    except Error as e:
+        current_app.logger.error(f'Database error: {str(e)}')
+        return jsonify({"error": str(e)}), 500
+
+
+
+
+'''
 # ============================================
 # USER STORY 1.2: Get student profile with ratings
 # As a student seeking help, I want to see verified student profiles with ratings
@@ -176,11 +332,12 @@ def get_provider_metrics(student_id):
         current_app.logger.error(f'Error getting metrics: {str(e)}')
         return jsonify({'error': str(e)}), 500
 
+'''
 # ============================================
 # USER STORY 3.2: Verify student account
 # As an admin, I want to verify student accounts
 # ============================================
-@students.route("/students/<int:student_id>/verify", methods=["PUT"])
+@students.route("/<int:student_id>/verify", methods=["PUT"])
 def verify_student(student_id):
     try:
         cursor = db.get_db().cursor()
@@ -205,7 +362,7 @@ def verify_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
-
+'''
 # ============================================
 # USER STORY 3.6: Search for users
 # As an admin, I want to search for specific users by name, email
@@ -279,13 +436,13 @@ def get_student_ratings(student_id):
         return jsonify(rating), 200
     except Error as e:
         return jsonify({"error": str(e)}), 500
-
+'''
 
 # ============================================
 # USER STORY 3.5: Suspend student account
 # As an admin, I want to suspend accounts
 # ============================================
-@students.route("/students/<int:student_id>/suspend", methods=["PUT"])
+@students.route("/<int:student_id>/suspend", methods=["PUT"])
 def suspend_student(student_id):
     try:
         cursor = db.get_db().cursor()
@@ -305,7 +462,7 @@ def suspend_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
-@students.route("/students/<int:student_id>/unsuspend", methods=["PUT"])
+@students.route("/<int:student_id>/unsuspend", methods=["PUT"])
 def unsuspend_student(student_id):
     try:
         cursor = db.get_db().cursor()
@@ -324,6 +481,7 @@ def unsuspend_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
+'''
 # ============================================
 # USER STORY 4.4: Sort users by registration date (PM analytics)
 # As a PM, I want to filter and sort users by registration date
@@ -402,3 +560,42 @@ def get_students_by_transaction_count():
         return jsonify(students_data), 200
     except Error as e:
         return jsonify({"error": str(e)}), 500
+
+
+
+# ============================================
+# GET /students/{id}
+# Return detailed student profile
+# Used by: [Tim-6, Emma-2, Jessica-1]
+# ============================================
+@students.route("/students/<int:student_id>", methods=["GET"])
+def get_student_profile(student_id):
+    try:
+        current_app.logger.info(f'udhcuhcuet {student_id}')
+        cursor = db.get_db().cursor()
+        
+        query = """
+            query cejnckewmcoqemo
+        """
+        
+        cursor.execute(query, (student_id,))
+        profile = cursor.fetchone() # we use fetchone instead??? and then /GET students would be all?
+        cursor.close()
+        
+        if not profile:
+            return jsonify({"error": "Student not found"}), 404
+            
+        return jsonify(profile), 200
+    except Error as e:
+        current_app.logger.error(f'Database error: {str(e)}')
+        return jsonify({"error": str(e)}), 500
+
+
+
+all places u use endpoint, put all data together and then streamlit doe sthe filter
+OR 
+have a version of the endpoint so 
+
+write one get reqiest that gets all detailed info and then in streamlit basically filter out 
+for this partocular i need a name and a date or etc. $/hour, etc
+'''
