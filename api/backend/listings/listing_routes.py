@@ -256,3 +256,164 @@ def delete_availability(listing_id, availability_id):
     except Error as e:
         current_app.logger.error(f'Error deleting availability: {str(e)}')
         return jsonify({'error': str(e)}), 500
+
+# ============================================
+# USER STORY 3
+# GET all listings (for admin)
+# ============================================
+@listings.route("/listings", methods=["GET"])
+def get_all_listings():
+    """Get all listings with optional filters"""
+    try:
+        current_app.logger.info('GET /listings - Getting all listings')
+        
+        # Query params
+        status = request.args.get("status", "")
+        category = request.args.get("category", "")
+        search = request.args.get("q", "")
+        
+        cursor = db.get_db().cursor()
+        
+        query = """
+            SELECT
+                l.listingId,
+                l.title,
+                l.description,
+                l.price,
+                l.unit,
+                l.listingStatus,
+                l.lastUpdate,
+                l.imageUrl,
+                c.categoryId,
+                c.name AS category_name,
+                s.stuId AS providerId,
+                s.firstName AS provider_fname,
+                s.lastName AS provider_lname,
+                s.email AS provider_email,
+                s.accountStatus AS provider_status
+            FROM listing l
+            JOIN category c ON l.categoryId = c.categoryId
+            JOIN student s ON l.providerId = s.stuId
+            WHERE 1=1
+        """
+        
+        params = []
+        
+        if status:
+            query += " AND l.listingStatus = %s"
+            params.append(status)
+        
+        if category:
+            query += " AND c.categoryId = %s"
+            params.append(category)
+        
+        if search:
+            query += " AND (l.title LIKE %s OR l.description LIKE %s)"
+            search_pattern = f"%{search}%"
+            params.extend([search_pattern, search_pattern])
+        
+        query += " ORDER BY l.lastUpdate DESC"
+        
+        cursor.execute(query, params)
+        listings_data = cursor.fetchall()
+        cursor.close()
+        
+        return jsonify(listings_data), 200
+    except Error as e:
+        current_app.logger.error(f'Database error: {str(e)}')
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================
+# # USER STORY 3
+# GET single listing by ID
+# ============================================
+@listings.route("/listings/<int:listing_id>", methods=["GET"])
+def get_listing_by_id(listing_id):
+    """Get detailed listing information"""
+    try:
+        current_app.logger.info(f'GET /listings/{listing_id}')
+        cursor = db.get_db().cursor()
+        
+        query = """
+            SELECT
+                l.listingId,
+                l.title,
+                l.description,
+                l.price,
+                l.unit,
+                l.listingStatus,
+                l.lastUpdate,
+                l.imageUrl,
+                c.categoryId,
+                c.name AS category_name,
+                s.stuId AS providerId,
+                s.firstName AS provider_fname,
+                s.lastName AS provider_lname,
+                s.email AS provider_email,
+                s.phone AS provider_phone,
+                s.accountStatus AS provider_status,
+                COUNT(DISTINCT r.reviewId) AS total_reviews,
+                AVG(r.rating) AS avg_rating,
+                COUNT(DISTINCT t.transactId) AS total_transactions
+            FROM listing l
+            JOIN category c ON l.categoryId = c.categoryId
+            JOIN student s ON l.providerId = s.stuId
+            LEFT JOIN review r ON l.listingId = r.listId
+            LEFT JOIN transact t ON l.listingId = t.listId
+            WHERE l.listingId = %s
+            GROUP BY l.listingId
+        """
+        
+        cursor.execute(query, (listing_id,))
+        listing = cursor.fetchone()
+        cursor.close()
+        
+        if not listing:
+            return jsonify({"error": "Listing not found"}), 404
+        
+        return jsonify(listing), 200
+    except Error as e:
+        current_app.logger.error(f'Database error: {str(e)}')
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================
+# USER STORY 3
+# GET all categories (for dropdowns)
+# ============================================
+@listings.route("/listings/categories", methods=["GET"])
+def get_all_categories():
+    """Get all categories for filtering"""
+    try:
+        cursor = db.get_db().cursor()
+        query = "SELECT categoryId, name, description FROM category ORDER BY name"
+        cursor.execute(query)
+        categories = cursor.fetchall()
+        cursor.close()
+        return jsonify(categories), 200
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================
+# # USER STORY 3
+# GET availability for a listing
+# ============================================
+@listings.route("/listings/<int:listing_id>/availability", methods=["GET"])
+def get_listing_availability(listing_id):
+    """Get all availability slots for a listing"""
+    try:
+        cursor = db.get_db().cursor()
+        query = """
+            SELECT availabilityId, listId, startTime, endTime
+            FROM availability
+            WHERE listId = %s
+            ORDER BY startTime
+        """
+        cursor.execute(query, (listing_id,))
+        availability = cursor.fetchall()
+        cursor.close()
+        return jsonify(availability), 200
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
