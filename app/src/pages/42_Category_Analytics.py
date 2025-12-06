@@ -8,6 +8,7 @@ st.set_page_config(page_title="Category Analytics", page_icon="📊", layout="wi
 SideBarLinks(show_home=True)
 
 st.title("📊 Category Analytics")
+st.write("Analyze category performance and trends")
 
 # API URL
 API_URL = "http://web-api:4000"
