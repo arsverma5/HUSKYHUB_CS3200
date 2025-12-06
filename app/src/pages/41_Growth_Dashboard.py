@@ -3,6 +3,7 @@ import requests
 from datetime import datetime, timedelta
 from modules.nav import SideBarLinks
 
+st.set_page_config(page_title="Growth Dashboard", page_icon="📈", layout="wide")
 SideBarLinks(show_home=True)
 
 st.title("📈 Growth Dashboard")
