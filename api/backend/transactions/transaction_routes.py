@@ -11,7 +11,7 @@ transactions = Blueprint("transactions", __name__)
 # Return all transactions with dispute info
 # [Tim-3, Emma-3, Jessica-5]
 # ============================================
-@transactions.route("/transactions", methods=["GET"])
+@transactions.route("/", methods=["GET"])  # ← CHANGED: removed /transactions
 def get_transactions():
     """
     Get transactions with comprehensive details including:
@@ -157,12 +157,12 @@ def get_transactions():
 # ============================================
 # POST /transactions
 # Create new booking/transaction [Emma-3]
-# As a student, I want to book appointments
 # ============================================
-@transactions.route("/transactions", methods=["POST"])
+@transactions.route("/", methods=["POST"])  # ← CHANGED: removed /transactions
 def create_transaction():
     """
     Emma-3: Create new booking/transaction
+    As a student, I want to book appointments
     """
     try:
         data = request.get_json()
@@ -215,7 +215,7 @@ def create_transaction():
 # GET /transactions/completion
 # Returns completion rate [Chris-3]
 # ============================================
-@transactions.route("/transactions/completion", methods=["GET"])
+@transactions.route("/completion", methods=["GET"])  # ← CHANGED: removed /transactions
 def get_completion_rate():
     """
     Chris-3: Returns completion rate of all transactions
@@ -251,10 +251,9 @@ def get_completion_rate():
 
 # ============================================
 # GET /transactions/{id}
-# Return detailed transaction with dispute log
-# [Tim-3, Jessica-5]
+# Return detailed transaction [Tim-3, Jessica-5]
 # ============================================
-@transactions.route("/transactions/<int:transaction_id>", methods=["GET"])
+@transactions.route("/<int:transaction_id>", methods=["GET"])  # ← CHANGED: removed /transactions
 def get_transaction_detail(transaction_id):
     """
     Tim-3, Jessica-5: Return detailed transaction with full dispute log
@@ -329,7 +328,7 @@ def get_transaction_detail(transaction_id):
 # PUT /transactions/{id}
 # Update transaction status [Tim-5, Emma-3, Jessica-5]
 # ============================================
-@transactions.route("/transactions/<int:transaction_id>", methods=["PUT"])
+@transactions.route("/<int:transaction_id>", methods=["PUT"])  # ← CHANGED: removed /transactions
 def update_transaction(transaction_id):
     """
     Update transaction status
@@ -387,7 +386,7 @@ def update_transaction(transaction_id):
 # DELETE /transactions/{id}
 # Cancel booking [Emma-3]
 # ============================================
-@transactions.route("/transactions/<int:transaction_id>", methods=["DELETE"])
+@transactions.route("/<int:transaction_id>", methods=["DELETE"])  # ← CHANGED: removed /transactions
 def cancel_transaction(transaction_id):
     """
     Emma-3: Cancel booking
@@ -425,7 +424,7 @@ def cancel_transaction(transaction_id):
 # PUT /transactions/{id}/complete
 # Mark service as completed [Jessica-6]
 # ============================================
-@transactions.route("/transactions/<int:transaction_id>/complete", methods=["PUT"])
+@transactions.route("/<int:transaction_id>/complete", methods=["PUT"])  # ← CHANGED: removed /transactions
 def complete_transaction(transaction_id):
     """
     Jessica-6: Update transaction status to 'completed' and set fulfillmentDate
@@ -462,7 +461,7 @@ def complete_transaction(transaction_id):
 # GET /transactions/category/{category}
 # Returns transactions within a certain category [Chris-2]
 # ============================================
-@transactions.route("/transactions/category/<int:category_id>", methods=["GET"])
+@transactions.route("/category/<int:category_id>", methods=["GET"])  # ← CHANGED: removed /transactions
 def get_transactions_by_category(category_id):
     """
     Chris-2: Returns transactions within a certain category

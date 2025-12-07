@@ -7,21 +7,15 @@ from flask import current_app
 students = Blueprint("students", __name__)
 
 
-'''
-- write an api call that gets all students: and u can input a few different things
-like sort by, etc, all in one query
-'''
-
-
-'''
-GET /students
-Return list of students searchable and filterable
-Used by: [Tim-6, Emma-2, Chris-1]
-Covers: Search, filter by status, sort by various criteria
-'''
+# ============================================
+# GET /students
+# Return list of students searchable and filterable
+# Used by: [Tim-6, Emma-2, Chris-1]
+# ============================================
 @students.route("/", methods=["GET"])
 def get_all_students():
     """
+    Get all students with optional filters
     Query params:
     - q: search term (firstName, lastName, email, phone)
     - status: filter by accountStatus (active, suspended, deleted)
@@ -31,7 +25,7 @@ def get_all_students():
     try:
         current_app.logger.info('GET /students - Getting all students')
         
-        # get query parameters
+        # Get query parameters
         search_term = request.args.get("q", "")
         status = request.args.get("status", "")
         sort_by = request.args.get("sortBy", "lastName")
@@ -57,7 +51,8 @@ def get_all_students():
         """
         
         params = []
-        # add search filter if provided (Tim-6, Emma-2)
+        
+        # Add search filter if provided
         if search_term:
             query += """
                 AND (firstName LIKE %s
@@ -69,19 +64,18 @@ def get_all_students():
             search_pattern = f"%{search_term}%"
             params.extend([search_pattern] * 5)
         
-        # add status filter if provided
+        # Add status filter if provided
         if status:
             query += " AND accountStatus = %s"
             params.append(status)
         
-        # add campus filter if provided
+        # Add campus filter if provided
         if campus:
             query += " AND campus = %s"
             params.append(campus)
         
-        # add sorting
+        # Add sorting
         if sort_by == "status":
-            # tim wants suspended first
             query += """
                 ORDER BY
                     CASE accountStatus
@@ -92,30 +86,30 @@ def get_all_students():
                     lastName, firstName
             """
         elif sort_by == "joinDate":
-            # chris wants newest first
             query += " ORDER BY joinDate DESC"
         else:
-            # default alphabetical
             query += " ORDER BY lastName, firstName"
         
         cursor.execute(query, params)
-        students_data = cursor.fetchall()  # multiple students
+        students_data = cursor.fetchall()
         cursor.close()
         
         current_app.logger.info(f'Successfully retrieved {len(students_data)} students')
         return jsonify(students_data), 200
+        
     except Error as e:
         current_app.logger.error(f'Database error: {str(e)}')
         return jsonify({"error": str(e)}), 500
 
 
-'''
-GET /students/{id}
-Return detailed student profile
-Used by: [Tim-6, Emma-2, Jessica-1]
-'''
+# ============================================
+# GET /students/{id}
+# Return detailed student profile
+# Used by: [Tim-6, Emma-2, Jessica-1]
+# ============================================
 @students.route("/<int:student_id>", methods=["GET"])
 def get_student_profile(student_id):
+    """Get detailed student profile with services and ratings"""
     try:
         current_app.logger.info(f'GET /students/{student_id} - Getting student profile')
         cursor = db.get_db().cursor()
@@ -147,54 +141,6 @@ def get_student_profile(student_id):
         """
         
         cursor.execute(query, (student_id,))
-        profile = cursor.fetchone()  # 1 student
-        cursor.close()
-        
-        if not profile:
-            return jsonify({"error": "Student not found"}), 404
-            
-        return jsonify(profile), 200
-    except Error as e:
-        current_app.logger.error(f'Database error: {str(e)}')
-        return jsonify({"error": str(e)}), 500
-
-
-
-
-'''
-# ============================================
-# USER STORY 1.2: Get student profile with ratings
-# As a student seeking help, I want to see verified student profiles with ratings
-# ============================================
-@students.route("/students/<int:student_id>", methods=["GET"])
-def get_student_profile(student_id):
-    try:
-        current_app.logger.info(f'Getting profile for student {student_id}')
-        cursor = db.get_db().cursor()
-        
-        query = """
-            SELECT
-                s.stuId,
-                s.firstName,
-                s.lastName,
-                s.email,
-                s.phone,
-                s.major,
-                s.bio,
-                s.verifiedStatus,
-                s.profilePhotoUrl,
-                COUNT(DISTINCT l.listingId) AS total_services,
-                AVG(r.rating) AS avg_rating,
-                COUNT(DISTINCT r.reviewId) AS total_reviews
-            FROM student s
-            LEFT JOIN listing l ON s.stuId = l.providerId
-            LEFT JOIN review r ON l.listingId = r.listId
-            WHERE s.stuId = %s AND s.verifiedStatus = TRUE
-            GROUP BY s.stuId, s.firstName, s.lastName, s.email, s.phone,
-                     s.major, s.bio, s.verifiedStatus, s.profilePhotoUrl
-        """
-        
-        cursor.execute(query, (student_id,))
         profile = cursor.fetchone()
         cursor.close()
         
@@ -202,99 +148,157 @@ def get_student_profile(student_id):
             return jsonify({"error": "Student not found"}), 404
             
         return jsonify(profile), 200
+        
     except Error as e:
         current_app.logger.error(f'Database error: {str(e)}')
         return jsonify({"error": str(e)}), 500
 
 
 # ============================================
-# USER STORY 2.1: Update student profile
-# As a service provider, I want to create a comprehensive profile
+# PUT /students/{id}
+# Update student profile/status
+# Used by: [Tim-2, Tim-5, Jessica-1]
 # ============================================
-@students.route("/students/<int:student_id>", methods=["PUT"])
-def update_student_profile(student_id):
+@students.route("/<int:student_id>", methods=["PUT"])
+def update_student(student_id):
+    """
+    Update student record with new values for specified fields
+    Dynamically builds UPDATE query based on provided fields
+    """
     try:
+        current_app.logger.info(f'PUT /students/{student_id} - Updating student')
         data = request.get_json()
         cursor = db.get_db().cursor()
         
-        query = """
-            UPDATE student
-            SET bio = %s,
-                major = %s,
-                phone = %s,
-                profilePhotoUrl = %s
-            WHERE stuId = %s
-        """
+        update_fields = []
+        params = []
+        allowed_fields = ['bio', 'major', 'phone', 'profilePhotoUrl', 
+                          'verifiedStatus', 'accountStatus']
         
-        cursor.execute(query, (
-            data.get('bio'),
-            data.get('major'),
-            data.get('phone'),
-            data.get('profilePhotoUrl'),
-            student_id
-        ))
+        for field in allowed_fields:
+            if field in data:
+                update_fields.append(f"{field} = %s")
+                params.append(data[field])
         
+        if not update_fields:
+            return jsonify({"error": "No valid fields to update"}), 400
+        
+        params.append(student_id)
+        query = f"UPDATE student SET {', '.join(update_fields)} WHERE stuId = %s"
+        
+        cursor.execute(query, params)
         db.get_db().commit()
         cursor.close()
         
-        return jsonify({"message": "Profile updated successfully"}), 200
+        return jsonify({"message": "Student updated successfully"}), 200
+        
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
 # ============================================
-# USER STORY 2.1: Create service provider profile
-# As a service provider, I want to add new service offerings 
+# GET /students/{id}/ratings
+# Return student's average rating
+# Used by: [Tim-4, Emma-2]
 # ============================================
-@students.route("/students", methods=["POST"])
-def create_student_profile():
-    """Jessica-1: Create new service provider profile"""
+@students.route("/<int:student_id>/ratings", methods=["GET"])
+def get_student_ratings(student_id):
+    """Get provider's average rating across all their listings"""
     try:
-        data = request.get_json()
-        current_app.logger.info('Creating new service provider profile')
-        
+        current_app.logger.info(f'GET /students/{student_id}/ratings')
         cursor = db.get_db().cursor()
+        
         query = """
-            INSERT INTO student (
-                firstName, lastName, email, phone, bio, 
-                campus, major, verifiedStatus, profilePhotoUrl
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            SELECT 
+                provider.stuID AS providerId,
+                CONCAT(provider.firstName, ' ', provider.lastName) AS provider_name,
+                AVG(r.rating) AS avg_rating,
+                provider.accountStatus
+            FROM student provider
+            JOIN listing l ON provider.stuId = l.providerId
+            JOIN review r ON l.listingId = r.listId
+            WHERE provider.stuId = %s
+            GROUP BY provider.stuId, provider.accountStatus
         """
         
-        cursor.execute(query, (
-            data['firstName'],
-            data['lastName'],
-            data['email'],
-            data['phone'],
-            data.get('bio', ''),
-            data.get('campus', 'BOSTN'),
-            data.get('major', ''),
-            data.get('verifiedStatus', True),
-            data.get('profilePhotoUrl', '')
-        ))
-        
-        db.get_db().commit()
-        new_id = cursor.lastrowid
+        cursor.execute(query, (student_id,))
+        rating_data = cursor.fetchone()
         cursor.close()
         
-        return jsonify({
-            'message': 'Profile created successfully',
-            'stuId': new_id
-        }), 201
+        if not rating_data:
+            return jsonify({"error": "No ratings found"}), 404
+            
+        return jsonify(rating_data), 200
         
     except Error as e:
-        current_app.logger.error(f'Error creating profile: {str(e)}')
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
+
 
 # ============================================
-# USER STORY 2.6: View provider metrics
-# As a service provider, I want to mark completed services and request reviews from clients so that I can build my reputation on the platform
+# PUT /students/{id}/suspend
+# Suspend a student account
+# Used by: [Tim-5]
 # ============================================
-@students.route("/students/<int:student_id>/metrics", methods=["GET"])
-def get_provider_metrics(student_id):
-    """Jessica-6: Return provider performance dashboard metrics"""
+@students.route("/<int:student_id>/suspend", methods=["PUT"])
+def suspend_student(student_id):
+    """Tim-5: Suspend a student account"""
     try:
-        current_app.logger.info(f'Getting metrics for provider {student_id}')
+        cursor = db.get_db().cursor()
+        
+        query = """
+            UPDATE student
+            SET accountStatus = 'suspended'
+            WHERE stuId = %s
+        """
+        
+        cursor.execute(query, (student_id,))
+        db.get_db().commit()
+        cursor.close()
+        
+        return jsonify({"message": "Student suspended successfully"}), 200
+        
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================
+# PUT /students/{id}/unsuspend
+# Unsuspend a student account
+# ============================================
+@students.route("/<int:student_id>/unsuspend", methods=["PUT"])
+def unsuspend_student(student_id):
+    """Unsuspend a student account"""
+    try:
+        cursor = db.get_db().cursor()
+        
+        query = """
+            UPDATE student
+            SET accountStatus = 'active'
+            WHERE stuId = %s
+        """
+        
+        cursor.execute(query, (student_id,))
+        db.get_db().commit()
+        cursor.close()
+        
+        return jsonify({"message": "Student unsuspended successfully"}), 200
+        
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================
+# GET /students/{id}/metrics
+# Return provider performance dashboard
+# Used by: [Jessica-6]
+# ============================================
+@students.route("/<int:student_id>/metrics", methods=["GET"])
+def get_student_metrics(student_id):
+    """
+    Jessica-6: Return provider performance dashboard metrics
+    As a service provider, I want to track my performance
+    """
+    try:
+        current_app.logger.info(f'Getting metrics for student {student_id}')
         cursor = db.get_db().cursor()
         
         query = """
@@ -320,22 +324,164 @@ def get_provider_metrics(student_id):
         """
         
         cursor.execute(query, (student_id,))
-        result = cursor.fetchone()
+        metrics = cursor.fetchone()
         cursor.close()
         
-        if not result:
-            return jsonify({'error': 'Provider not found'}), 404
-        
-        return jsonify(result), 200
+        if not metrics:
+            return jsonify({"error": "Student not found"}), 404
+            
+        return jsonify(metrics), 200
         
     except Error as e:
         current_app.logger.error(f'Error getting metrics: {str(e)}')
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
-'''
+
 # ============================================
-# USER STORY 3.2: Verify student account
-# As an admin, I want to verify student accounts
+# GET /students/provider/metrics
+# Return all providers with metrics
+# Used by: [Chris-4, Chris-5]
+# ============================================
+@students.route("/provider/metrics", methods=["GET"])
+def get_all_provider_metrics():
+    """
+    Get all providers with their performance metrics
+    Query params: 
+    - sortBy: 'rating' or 'transactions' (default)
+    - limit: number of results (default 100)
+    """
+    try:
+        sort_by = request.args.get("sortBy", "transactions")
+        limit = int(request.args.get("limit", "100"))
+        
+        cursor = db.get_db().cursor()
+        
+        query = """
+            SELECT 
+                s.stuId,
+                s.firstName,
+                s.lastName,
+                s.email,
+                s.campus,
+                AVG(r.rating) AS avg_rating,
+                COUNT(DISTINCT CASE WHEN t.transactStatus = 'completed' 
+                      THEN t.transactId END) AS completed_transactions
+            FROM student s
+            LEFT JOIN listing l ON s.stuId = l.providerId
+            LEFT JOIN transact t ON l.listingId = t.listId
+            LEFT JOIN review r ON l.listingId = r.listId
+            GROUP BY s.stuId, s.firstName, s.lastName, s.email, s.campus
+            HAVING completed_transactions > 0
+        """
+        
+        if sort_by == "rating":
+            query += " ORDER BY avg_rating DESC"
+        else:
+            query += " ORDER BY completed_transactions DESC"
+        
+        query += f" LIMIT {limit}"
+        
+        cursor.execute(query)
+        metrics = cursor.fetchall()
+        cursor.close()
+        
+        return jsonify(metrics), 200
+        
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================
+# GET /students/consumer/metrics
+# Return consumer-side metrics
+# Used by: [Chris-4]
+# ============================================
+@students.route("/consumer/metrics", methods=["GET"])
+def get_consumer_metrics():
+    """Get students as consumers/buyers with transaction counts"""
+    try:
+        cursor = db.get_db().cursor()
+        
+        query = """
+            SELECT 
+                s.stuId,
+                s.firstName,
+                s.lastName,
+                s.email,
+                s.campus,
+                COUNT(t.transactId) AS transaction_count
+            FROM student s
+            LEFT JOIN transact t ON s.stuId = t.buyerId
+            GROUP BY s.stuId, s.firstName, s.lastName, s.email, s.campus
+            HAVING transaction_count > 0
+            ORDER BY transaction_count DESC
+        """
+        
+        cursor.execute(query)
+        metrics = cursor.fetchall()
+        cursor.close()
+        
+        return jsonify(metrics), 200
+        
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================
+# GET /students/new-user-metrics
+# Returns new user activity
+# Used by: [Chris-6]
+# ============================================
+@students.route("/new-user-metrics", methods=["GET"])
+def get_new_user_metrics():
+    """Get new user onboarding metrics (first 90 days)"""
+    try:
+        cursor = db.get_db().cursor()
+        
+        query = """
+            SELECT 
+                s.stuId, 
+                s.firstName, 
+                s.lastName, 
+                s.campus, 
+                s.joinDate,
+                (
+                    SELECT MIN(l.createDate)
+                    FROM listing AS l
+                    WHERE l.providerId = s.stuId
+                      AND l.createDate >= s.joinDate
+                      AND DATEDIFF(l.createDate, s.joinDate) <= 30
+                ) AS first_listing_date,
+                
+                DATEDIFF(
+                    (
+                        SELECT MIN(l2.createDate)
+                        FROM listing AS l2
+                        WHERE l2.providerId = s.stuId
+                          AND l2.createDate >= s.joinDate
+                          AND DATEDIFF(l2.createDate, s.joinDate) <= 30
+                    ),
+                    s.joinDate
+                ) AS days_to_first_listing
+            
+            FROM student AS s
+            WHERE DATEDIFF(NOW(), s.joinDate) <= 90
+            ORDER BY s.joinDate DESC
+        """
+        
+        cursor.execute(query)
+        new_user_data = cursor.fetchall()
+        cursor.close()
+        
+        return jsonify(new_user_data), 200
+        
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+# ============================================
+# PUT /students/{id}/verify
+# Verify a student account
+# Used by: Tim Green (User Story 3)
 # ============================================
 @students.route("/<int:student_id>/verify", methods=["PUT"])
 def verify_student(student_id):
@@ -344,258 +490,15 @@ def verify_student(student_id):
         
         query = """
             UPDATE student
-            SET verifiedStatus = TRUE,
-                accountStatus = 'active'
-            WHERE email LIKE '%@northeastern.edu'
-              AND stuId = %s
-              AND verifiedStatus = FALSE
+            SET verifiedStatus = 1
+            WHERE stuId = %s
         """
         
         cursor.execute(query, (student_id,))
         db.get_db().commit()
-        
-        if cursor.rowcount == 0:
-            return jsonify({"error": "Student not found or already verified"}), 404
-            
         cursor.close()
+        
         return jsonify({"message": "Student verified successfully"}), 200
+        
     except Error as e:
         return jsonify({"error": str(e)}), 500
-
-'''
-# ============================================
-# USER STORY 3.6: Search for users
-# As an admin, I want to search for specific users by name, email
-# ============================================
-@students.route("/students/search", methods=["GET"])
-def search_students():
-    try:
-        search_term = request.args.get("q", "")
-        
-        cursor = db.get_db().cursor()
-        query = """
-            SELECT
-                stuId,
-                CONCAT(firstName, ' ', lastName) AS full_name,
-                email,
-                phone,
-                accountStatus,
-                verifiedStatus,
-                campus,
-                major,
-                joinDate
-            FROM student
-            WHERE
-                firstName LIKE %s
-                OR lastName LIKE %s
-                OR email LIKE %s
-                OR phone LIKE %s
-                OR CONCAT(firstName, ' ', lastName) LIKE %s
-            ORDER BY lastName, firstName
-        """
-        
-        search_pattern = f"%{search_term}%"
-        cursor.execute(query, (search_pattern, search_pattern, search_pattern, search_pattern, search_pattern))
-        results = cursor.fetchall()
-        cursor.close()
-        
-        return jsonify(results), 200
-    except Error as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ============================================
-# USER STORY 3.4: See user ratings and service history
-# As an admin, I want to see user ratings and service history at a glance
-# ============================================
-@students.route("/students/<int:student_id>/ratings", methods=["GET"])
-def get_student_ratings(student_id):
-    try:
-        cursor = db.get_db().cursor()
-        
-        # Average rating query
-        query = """
-            SELECT provider.stuID AS providerId,
-                   CONCAT(provider.firstName, ' ', provider.lastName) AS provider_name,
-                   AVG(r.rating) AS avg_rating,
-                   provider.accountStatus
-            FROM student provider
-            JOIN listing l ON provider.stuId = l.providerId
-            JOIN review r ON l.listingId = r.listId
-            WHERE provider.stuId = %s
-            GROUP BY provider.stuId, provider.accountStatus
-        """
-        
-        cursor.execute(query, (student_id,))
-        rating = cursor.fetchone()
-        cursor.close()
-        
-        if not rating:
-            return jsonify({"error": "No ratings found for this student"}), 404
-            
-        return jsonify(rating), 200
-    except Error as e:
-        return jsonify({"error": str(e)}), 500
-'''
-
-# ============================================
-# USER STORY 3.5: Suspend student account
-# As an admin, I want to suspend accounts
-# ============================================
-@students.route("/<int:student_id>/suspend", methods=["PUT"])
-def suspend_student(student_id):
-    try:
-        cursor = db.get_db().cursor()
-        
-        # Update student account status
-        query = """
-            UPDATE student
-            SET accountStatus = 'suspended'
-            WHERE stuId = %s
-        """
-        
-        cursor.execute(query, (student_id,))
-        db.get_db().commit()
-        cursor.close()
-        
-        return jsonify({"message": "Student suspended successfully"}), 200
-    except Error as e:
-        return jsonify({"error": str(e)}), 500
-
-@students.route("/<int:student_id>/unsuspend", methods=["PUT"])
-def unsuspend_student(student_id):
-    try:
-        cursor = db.get_db().cursor()
-        
-        query = """
-            UPDATE student
-            SET accountStatus = 'active'
-            WHERE stuId = %s
-        """
-        
-        cursor.execute(query, (student_id,))
-        db.get_db().commit()
-        cursor.close()
-        
-        return jsonify({"message": "Student unsuspended successfully"}), 200
-    except Error as e:
-        return jsonify({"error": str(e)}), 500
-
-'''
-# ============================================
-# USER STORY 4.4: Sort users by registration date (PM analytics)
-# As a PM, I want to filter and sort users by registration date
-# ============================================
-@students.route("/students/by-registration", methods=["GET"])
-def get_students_by_registration():
-    try:
-        cursor = db.get_db().cursor()
-        
-        query = """
-            SELECT *
-            FROM student
-            ORDER BY student.joinDate DESC
-        """
-        
-        cursor.execute(query)
-        students_data = cursor.fetchall()
-        cursor.close()
-        
-        return jsonify(students_data), 200
-    except Error as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ============================================
-# USER STORY 4.4: Sort users by average rating (PM analytics)
-# ============================================
-@students.route("/students/by-rating", methods=["GET"])
-def get_students_by_rating():
-    try:
-        cursor = db.get_db().cursor()
-        
-        query = """
-            SELECT s.*, provider.avg_rating
-            FROM(
-                SELECT s.stuId, AVG(r.rating) AS avg_rating
-                FROM student s JOIN listing l ON l.providerId = s.stuId
-                               JOIN review r ON r.listId = l.listingId
-                GROUP BY s.stuId
-            ) AS provider JOIN student AS s ON s.stuid = provider.stuId
-            ORDER BY provider.avg_rating DESC
-        """
-        
-        cursor.execute(query)
-        students_data = cursor.fetchall()
-        cursor.close()
-        
-        return jsonify(students_data), 200
-    except Error as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ============================================
-# USER STORY 4.4: Sort users by transaction count (PM analytics)
-# ============================================
-@students.route("/students/by-transaction-count", methods=["GET"])
-def get_students_by_transaction_count():
-    try:
-        cursor = db.get_db().cursor()
-        
-        query = """
-            SELECT s.*, st.count
-            FROM (
-                SELECT buyerId AS stuId, COUNT(*) AS count
-                FROM transact
-                GROUP BY buyerId
-            ) AS st
-            JOIN student s ON s.stuId = st.stuId
-            ORDER BY st.count DESC
-        """
-        
-        cursor.execute(query)
-        students_data = cursor.fetchall()
-        cursor.close()
-        
-        return jsonify(students_data), 200
-    except Error as e:
-        return jsonify({"error": str(e)}), 500
-
-
-
-# ============================================
-# GET /students/{id}
-# Return detailed student profile
-# Used by: [Tim-6, Emma-2, Jessica-1]
-# ============================================
-@students.route("/students/<int:student_id>", methods=["GET"])
-def get_student_profile(student_id):
-    try:
-        current_app.logger.info(f'udhcuhcuet {student_id}')
-        cursor = db.get_db().cursor()
-        
-        query = """
-            query cejnckewmcoqemo
-        """
-        
-        cursor.execute(query, (student_id,))
-        profile = cursor.fetchone() # we use fetchone instead??? and then /GET students would be all?
-        cursor.close()
-        
-        if not profile:
-            return jsonify({"error": "Student not found"}), 404
-            
-        return jsonify(profile), 200
-    except Error as e:
-        current_app.logger.error(f'Database error: {str(e)}')
-        return jsonify({"error": str(e)}), 500
-
-
-
-all places u use endpoint, put all data together and then streamlit doe sthe filter
-OR 
-have a version of the endpoint so 
-
-write one get reqiest that gets all detailed info and then in streamlit basically filter out 
-for this partocular i need a name and a date or etc. $/hour, etc
-'''
