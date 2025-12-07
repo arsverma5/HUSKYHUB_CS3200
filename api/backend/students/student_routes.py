@@ -195,7 +195,6 @@ def update_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
-
 # ============================================
 # GET /students/{id}/ratings
 # Return student's average rating

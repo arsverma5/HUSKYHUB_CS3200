@@ -17,10 +17,13 @@ COPY ./src/requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
+COPY ./src .
+
 EXPOSE 8501
 
 CMD ["streamlit", "run", "Home.py", \
      "--server.port=8501", \
      "--server.address=0.0.0.0", \
-     "--server.fileWatcherType=poll", \
-     "--server.runOnSave=false"]
+     "--server.fileWatcherType=none", \
+     "--server.runOnSave=false", \
+     "--server.headless=true"]
