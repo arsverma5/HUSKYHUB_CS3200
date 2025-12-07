@@ -20,7 +20,6 @@ API_URL = "http://web-api:4000"
 def parse_date(val):
 	if not val:
 		return None
-	# Try RFC-style parsing first
 	try:
 		dt = parsedate_to_datetime(val)
 		if dt.tzinfo is None:
