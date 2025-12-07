@@ -25,8 +25,9 @@ def get_listings():
     try:
         status = request.args.get('status')
         category_id = request.args.get('categoryId')
+        category_name = request.args.get('category')
         provider_id = request.args.get('providerId')
-        search_term = request.args.get('search')
+        search_term = request.args.get('search') or request.args.get('q')
         
         current_app.logger.info(f'Getting listings - status: {status}, category: {category_id}, provider: {provider_id}')
         
@@ -68,6 +69,10 @@ def get_listings():
         if category_id:
             query += " AND l.categoryId = %s"
             params.append(category_id)
+        
+        if category_name and category_name != 'All':
+            query += " AND c.name = %s"
+            params.append(category_name)
         
         if provider_id:
             query += " AND l.providerId = %s"

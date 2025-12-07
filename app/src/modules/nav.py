@@ -56,6 +56,20 @@ def ClassificationNav():
     st.sidebar.page_link(
         "pages/13_Classification.py", label="Classification Demo", icon="🌺"
     )
+### -------------------------- Jessica Provider Role ------------------------
+
+
+def EmmaStudentHomeNav():
+    st.sidebar.page_link("pages/10_Emma_Client_Home.py", label="Home", icon="🏠")
+
+def EmmaBrowseServicesNav():
+    st.sidebar.page_link("pages/11_Browse_Services.py", label="Browse Services", icon="🔍")
+    
+def EmmaProviderProfileNav():
+    st.sidebar.page_link("pages/12_Provider_Profile.py", label="Provider Profiles", icon="👤")
+    
+def EmmaMyBookingsNav():
+    st.sidebar.page_link("pages/13_My_Bookings.py", label="My Bookings", icon="📅")
 
 ### -------------------------- Jessica Provider Role ------------------------
 def JessicaProviderHomeNav():
@@ -131,6 +145,13 @@ def SideBarLinks(show_home=False):
             PredictionNav()
             ApiTestNav()
             ClassificationNav()
+            
+        # If the user is Emma (Student Client), show student pages
+        if st.session_state["role"] == "student_client":
+            EmmaStudentHomeNav()
+            EmmaBrowseServicesNav()
+            EmmaProviderProfileNav()
+            EmmaMyBookingsNav()
             
         # If the user is Jessica (Service Provider), show provider pages
         if st.session_state["role"] == "service_provider":
