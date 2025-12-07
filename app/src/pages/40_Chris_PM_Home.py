@@ -100,7 +100,8 @@ try:
         if response.status_code == 200:
                 data = response.json()
                 total_transactions = len(data)
-                new_transactions = len([txn for txn in data if (datetime.strptime(txn['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ') >= datetime.now() - timedelta(days=30))])
+                st.write(data[0]['fulfillmentDate'])
+                new_transactions = len([txn for txn in data if txn['fulfillmentDate'] and (parsedate_to_datetime(txn['fulfillmentDate']) >= datetime.now(timezone.utc) - timedelta(days=30))])
                 old_transactions = total_transactions - new_transactions
                 percent_increase_transactions = str(round((new_transactions / old_transactions) * 100)) + "%" if old_transactions > 0 else "100%"
         else:
