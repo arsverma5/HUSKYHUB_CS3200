@@ -57,7 +57,18 @@ def ClassificationNav():
         "pages/13_Classification.py", label="Classification Demo", icon="🌺"
     )
 
+### -------------------------- Jessica Provider Role ------------------------
+def JessicaProviderHomeNav():
+    st.sidebar.page_link("pages/20_Jessica_Provider_Home.py", label="Dashboard", icon="📊")
 
+def JessicaMyServicesNav():
+    st.sidebar.page_link("pages/21_My_Services.py", label="My Services", icon="📝")
+    
+def JessicaPendingRequestsNav():
+    st.sidebar.page_link("pages/22_Pending_Requests.py", label="Pending Requests", icon="📋")
+    
+def JessicaMyAvailabilityNav():
+    st.sidebar.page_link("pages/23_My_Availability.py", label="My Availability", icon="📅")
 
 #### ------------------------ Timothy Admin Role ------------------------
 def TimothyAdminHomeNav():
@@ -121,6 +132,13 @@ def SideBarLinks(show_home=False):
             ApiTestNav()
             ClassificationNav()
             
+        # If the user is Jessica (Service Provider), show provider pages
+        if st.session_state["role"] == "service_provider":
+            HomeNav()
+            JessicaProviderHomeNav()
+            JessicaMyServicesNav()
+            JessicaPendingRequestsNav()
+            JessicaMyAvailabilityNav()
 
         # If the user is Timothy (platform admin), show admin pages
         if st.session_state["role"] == "admin":
