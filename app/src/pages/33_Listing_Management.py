@@ -115,10 +115,10 @@ with tab2:
         
         with col2:
             st.markdown("**👤 Provider Info**")
-            st.write(f"**Provider ID:** {listing.get('providerId')}")
-            st.write(f"**Name:** {listing.get('provider_fname')} {listing.get('provider_lname')}")
-            st.write(f"**Email:** {listing.get('provider_email')}")
-            st.write(f"**Provider Status:** {listing.get('provider_status')}")
+            st.write(f"**Provider ID:** {listing.get('provider_id')}")
+            st.write(f"**Name:** {listing.get('provider_name')}") 
+            st.write(f"**Email:** {listing.get('provider_email', 'N/A')}")
+            st.write(f"**Verified:** {'✅' if listing.get('provider_verified') else '❌'}")
         
         # Description
         st.divider()
@@ -127,14 +127,12 @@ with tab2:
         
         # Stats
         st.divider()
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         with col1:
-            st.metric("Reviews", listing.get('total_reviews', 0))
+            st.metric("Reviews", listing.get('review_count', 0))
         with col2:
             avg_rating = listing.get('avg_rating') or 0
             st.metric("Avg Rating", f"⭐ {avg_rating}")
-        with col3:
-            st.metric("Transactions", listing.get('total_transactions', 0))
         
         # Action buttons
         st.divider()
@@ -178,7 +176,7 @@ with tab2:
         
         with col3:
             if st.button("👤 View Provider", use_container_width=True, key="listing_view_provider_btn"):
-                st.session_state.search_user_id = listing.get('providerId')
+                st.session_state.search_user_id = listing.get('provider_id')
                 st.switch_page("pages/32_User_Management.py")
         
         # Edit Form
@@ -254,7 +252,7 @@ with tab1:
     with col2:
         # Fetch categories for dropdown
         try:
-            cat_response = requests.get(f"{API_URL}/category")
+            cat_response = requests.get(f"{API_URL}/listings/categories")
             if cat_response.status_code == 200:
                 categories = cat_response.json()
                 category_options = [""] + [str(c.get('categoryId')) for c in categories]
@@ -282,9 +280,9 @@ with tab1:
         if status_filter:
             params["status"] = status_filter
         if category_filter:
-            params["category"] = category_filter
+            params["categoryId"] = category_filter
         if search_term:
-            params["q"] = search_term
+            params["search"] = search_term
         
         response = requests.get(f"{API_URL}/listings", params=params)
         
@@ -315,8 +313,8 @@ with tab1:
                     price = listing.get("price", 0)
                     unit = listing.get("unit", "")
                     status = listing.get("listingStatus", "active")
-                    provider_name = f"{listing.get('provider_fname', '')} {listing.get('provider_lname', '')}"
-                    provider_status = listing.get("provider_status", "active")
+                    provider_name = listing.get("provider_name", "N/A")
+                    provider_verified = listing.get("provider_verified", False)
                     
                     with st.container(border=True):
                         col1, col2, col3, col4 = st.columns([1, 2, 2, 1])
@@ -335,8 +333,8 @@ with tab1:
                         
                         with col3:
                             st.write(f"**Provider:** {provider_name}")
-                            if provider_status == "suspended":
-                                st.warning("⚠️ Provider Suspended")
+                            if not provider_verified:
+                                st.warning("⚠️ Unverified Provider")
                         
                         with col4:
                             if st.button("View", key=f"listing_view_card_{listing_id}", use_container_width=True):
@@ -346,7 +344,7 @@ with tab1:
                                 
                                 fetch_success = False
                                 try:
-                                    resp = requests.get(f"{API_URL}/listings/listings/{listing_id}")
+                                    resp = requests.get(f"{API_URL}/listings/{listing_id}")
                                     if resp.status_code == 200:
                                         st.session_state.selected_listing = resp.json()
                                         fetch_success = True

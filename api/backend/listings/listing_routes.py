@@ -488,3 +488,20 @@ def delete_availability(listing_id, availability_id):
         current_app.logger.error(f'Error deleting availability: {str(e)}')
         db.get_db().rollback()
         return jsonify({'error': str(e)}), 500
+
+# ============================================
+# GET /listings/categories
+# Return all categories - for admin filtering
+# Tim Green (User Story 3)
+# ============================================
+@listings.route("/categories", methods=["GET"])
+def get_categories():
+    try:
+        cursor = db.get_db().cursor()
+        query = "SELECT categoryId, name, description, type FROM category ORDER BY name"
+        cursor.execute(query)
+        categories = cursor.fetchall()
+        cursor.close()
+        return jsonify(categories), 200
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
