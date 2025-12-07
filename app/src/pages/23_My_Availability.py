@@ -135,7 +135,7 @@ st.subheader("3️⃣ Current Availability")
 
 try:
     availability_response = requests.get(
-        f'http://api:4000/l/listings/{selected_listing_id}/availability'
+        f'http://web-api:4000/l/listings/{selected_listing_id}/availability'
     )
     
     if availability_response.status_code == 200:
@@ -160,7 +160,7 @@ try:
                     if st.button("🗑️", key=f"delete_{slot['availabilityId']}", help="Delete"):
                         try:
                             delete_response = requests.delete(
-                                f'http://api:4000/l/listings/{selected_listing_id}/availability/{slot["availabilityId"]}'
+                                f'http://web-api:4000/l/listings/{selected_listing_id}/availability/{slot["availabilityId"]}'
                             )
                             if delete_response.status_code == 200:
                                 st.success("Deleted!")
