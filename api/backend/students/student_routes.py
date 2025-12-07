@@ -8,12 +8,6 @@ students = Blueprint("students", __name__)
 
 
 '''
-- write an api call that gets all students: and u can input a few different things
-like sort by, etc, all in one query
-'''
-
-
-'''
 GET /students
 Return list of students searchable and filterable
 Used by: [Tim-6, Emma-2, Chris-1]
@@ -210,7 +204,6 @@ def update_student(student_id):
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
-'''
 # ============================================
 # GET /students/{id}/ratings
 # Return student's average rating
@@ -249,6 +242,7 @@ def get_student_ratings(student_id):
         return jsonify(rating_data), 200
     except Error as e:
         return jsonify({"error": str(e)}), 500
+
 '''
 
 # ============================================
