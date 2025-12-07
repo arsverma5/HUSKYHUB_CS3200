@@ -19,7 +19,7 @@ st.subheader("1️⃣ Select Service")
 
 try:
     # Get provider's listings
-    listings_response = requests.get(f'http://api:4000/l/listings')
+    listings_response = requests.get(f'http://web-api:4000/l/listings')
     
     if listings_response.status_code == 200:
         all_listings = listings_response.json()
@@ -62,7 +62,7 @@ with col1:
             end_datetime = f"{date} {end_time}"
             
             response = requests.post(
-                f'http://api:4000/l/listings/{selected_listing_id}/availability',
+                f'http://web-api:4000/l/listings/{selected_listing_id}/availability',
                 json={
                     'slots': [
                         {
@@ -116,7 +116,7 @@ with col2:
                 })
             
             response = requests.post(
-                f'http://api:4000/l/listings/{selected_listing_id}/availability',
+                f'http://web-api:4000/l/listings/{selected_listing_id}/availability',
                 json={'slots': slots}
             )
             
@@ -135,7 +135,7 @@ st.subheader("3️⃣ Current Availability")
 
 try:
     availability_response = requests.get(
-        f'http://api:4000/l/listings/{selected_listing_id}/availability'
+        f'http://web-api:4000/l/listings/{selected_listing_id}/availability'
     )
     
     if availability_response.status_code == 200:
@@ -160,7 +160,7 @@ try:
                     if st.button("🗑️", key=f"delete_{slot['availabilityId']}", help="Delete"):
                         try:
                             delete_response = requests.delete(
-                                f'http://api:4000/l/listings/{selected_listing_id}/availability/{slot["availabilityId"]}'
+                                f'http://web-api:4000/l/listings/{selected_listing_id}/availability/{slot["availabilityId"]}'
                             )
                             if delete_response.status_code == 200:
                                 st.success("Deleted!")

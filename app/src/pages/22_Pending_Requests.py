@@ -26,7 +26,7 @@ st.divider()
 # DISPLAY PENDING REQUESTS
 try:
     response = requests.get(
-        f'http://api:4000/t/transactions',
+        f'http://web-api:4000/t/transactions',
         params={'providerId': provider_id, 'status': 'requested'}
     )
     
@@ -75,7 +75,7 @@ try:
                         ):
                             try:
                                 update_response = requests.put(
-                                    f'http://api:4000/t/transactions/{req[0]}',
+                                    f'http://web-api:4000/t/transactions/{req[0]}',
                                     json={'transactStatus': 'confirmed'}
                                 )
                                 if update_response.status_code == 200:
@@ -95,7 +95,7 @@ try:
                         ):
                             try:
                                 update_response = requests.put(
-                                    f'http://api:4000/t/transactions/{req[0]}',
+                                    f'http://web-api:4000/t/transactions/{req[0]}',
                                     json={'transactStatus': 'cancelled'}
                                 )
                                 if update_response.status_code == 200:

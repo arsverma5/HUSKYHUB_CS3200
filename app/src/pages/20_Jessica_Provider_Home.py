@@ -26,7 +26,7 @@ st.subheader("💼 Your Performance")
 
 try:
     # Call the metrics API
-    response = requests.get(f'http://api:4000/s/students/{provider_id}/metrics')
+    response = requests.get(f'http://web-api:4000/s/students/{provider_id}/metrics')
     
     if response.status_code == 200:
         data = response.json()
@@ -71,7 +71,7 @@ st.subheader("📋 Pending Service Requests")
 try:
     # Call the pending requests API
     response = requests.get(
-        f'http://api:4000/t/transactions',
+        f'http://web-api:4000/t/transactions',
         params={'providerId': provider_id, 'status': 'requested'}
     )
     
@@ -102,7 +102,7 @@ try:
                             # Call PUT /transactions/{id}
                             try:
                                 update_response = requests.put(
-                                    f'http://api:4000/t/transactions/{req[0]}',
+                                    f'http://web-api:4000/t/transactions/{req[0]}',
                                     json={'transactStatus': 'confirmed'}
                                 )
                                 if update_response.status_code == 200:
@@ -118,7 +118,7 @@ try:
                             # Call PUT /transactions/{id}
                             try:
                                 update_response = requests.put(
-                                    f'http://api:4000/t/transactions/{req[0]}',
+                                    f'http://web-api:4000/t/transactions/{req[0]}',
                                     json={'transactStatus': 'cancelled'}
                                 )
                                 if update_response.status_code == 200:

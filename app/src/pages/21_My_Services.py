@@ -41,7 +41,7 @@ with st.expander("➕ Add New Service"):
             else:
                 try:
                     response = requests.post(
-                        'http://api:4000/l/listings',
+                        'http://web-api:4000/l/listings',
                         json={
                             'categoryId': category_id,
                             'providerId': provider_id,
@@ -75,7 +75,7 @@ with col1:
     )
 
 try:
-    response = requests.get(f'http://api:4000/l/listings')
+    response = requests.get(f'http://web-api:4000/l/listings')
     
     if response.status_code == 200:
         all_listings = response.json()
@@ -111,7 +111,7 @@ try:
                         if st.button("🗑️ Remove", key=f"delete_{listing['listingId']}", use_container_width=True):
                             try:
                                 delete_response = requests.delete(
-                                    f'http://api:4000/l/listings/{listing["listingId"]}'
+                                    f'http://web-api:4000/l/listings/{listing["listingId"]}'
                                 )
                                 if delete_response.status_code == 200:
                                     st.success("Service removed!")
@@ -132,7 +132,7 @@ try:
                                 if st.form_submit_button("💾 Save Changes", use_container_width=True):
                                     try:
                                         update_response = requests.put(
-                                            f'http://api:4000/l/listings/{listing["listingId"]}',
+                                            f'http://web-api:4000/l/listings/{listing["listingId"]}',
                                             json={
                                                 'price': new_price,
                                                 'description': new_description
