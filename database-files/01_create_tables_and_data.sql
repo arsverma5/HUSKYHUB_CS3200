@@ -250,6 +250,10 @@ INSERT INTO transact (transactId, buyerId, listId, bookDate, transactStatus, ful
 (4, 3, 3, '2025-10-20 09:00:00', 'completed', '2025-10-20 12:00:00', 50.00, 5.00, 'Moving help - 3 hours'),
 (5, 2, 3, '2025-10-25 11:00:00', 'cancelled', NULL, 0.00, 0.00, 'Cancelled booking'),
 (6, 1, 2, '2025-09-20 12:00:00', 'completed', '2025-09-20 13:00:00', 25.00, 2.50, 'Old transaction sample'),
-(7, 4, 1, '2025-11-05 14:00:00', 'confirmed', NULL, 30.00, 3.00, 'Booked, awaiting fulfillment');
+(7, 4, 1, '2025-11-05 14:00:00', 'confirmed', NULL, 30.00, 3.00, 'Booked, awaiting fulfillment'),
+(8, 2, 1, '2025-12-03 09:30:00', 'requested', NULL, 30.00, 3.00, 'Morning Python consult'),
+(9, 5, 2, '2025-12-05 18:00:00', 'confirmed', NULL, 25.00, 2.50, 'Calc test prep'),
+(10, 3, 3, '2025-12-06 13:15:00', 'completed', '2025-12-06 14:45:00', 50.00, 5.00, 'Apartment move assistance'),
+(11, 1, 2, '2025-12-07 20:00:00', 'cancelled', NULL, 0.00, 0.00, 'Same-day cancellation');
 
 
