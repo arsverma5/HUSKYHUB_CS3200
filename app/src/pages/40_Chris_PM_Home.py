@@ -82,7 +82,8 @@ try:
 
                 total_listings = len(data)
                 new_listings = len([listing for listing in data if parsedate_to_datetime(listing['lastUpdate']) >= datetime.now(timezone.utc) - timedelta(days=30)])
-                percent_increase_listings = str(round((new_listings / (total_listings - new_listings)) * 100)) + "%" if (total_listings - new_listings) > 0 else "0%"
+                old_listings = total_listings - new_listings
+                percent_increase_listings = str(round((new_listings / old_listings) * 100)) + "%" if old_listings > 0 else "100%"
         else:
                 total_listings = "N/A"
                 percent_increase_listings = "N/A"
@@ -100,7 +101,8 @@ try:
                 data = response.json()
                 total_transactions = len(data)
                 new_transactions = len([txn for txn in data if (datetime.strptime(txn['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ') >= datetime.now() - timedelta(days=30))])
-                percent_increase_transactions = str(round((new_transactions / (total_transactions - new_transactions)) * 100)) + "%" if (total_transactions - new_transactions) > 0 else "0%"
+                old_transactions = total_transactions - new_transactions
+                percent_increase_transactions = str(round((new_transactions / old_transactions) * 100)) + "%" if old_transactions > 0 else "100%"
         else:
                 total_transactions = "N/A"
                 percent_increase_transactions = "N/A"
