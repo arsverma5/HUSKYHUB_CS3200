@@ -5,7 +5,7 @@ from modules.nav import SideBarLinks
 
 SideBarLinks(show_home=True)
 
-st.title("🛠️ Listing Management")
+st.title("Listing Management")
 
 # API URL
 API_URL = "http://web-api:4000"
@@ -46,7 +46,7 @@ else:
 # SEARCH FOR LISTING TAB
 # ============================================================
 with tab2:
-    st.subheader("🔍 Search For Listing")
+    st.subheader("Search For Listing")
     
     # Search bar
     col1, col2 = st.columns([3, 1])
@@ -90,21 +90,21 @@ with tab2:
         
         listing = st.session_state.selected_listing
         
-        st.subheader(f"📦 {listing.get('title')}")
+        st.subheader(f"{listing.get('title')}")
         
         # Status badge
         status = listing.get('listingStatus', 'active')
         if status == 'removed':
-            st.error("🚫 Status: Removed")
+            st.error("Status: Removed")
         elif status == 'active':
-            st.success("✅ Status: Active")
+            st.success("Status: Active")
         else:
-            st.info(f"📋 Status: {status}")
+            st.info(f"Status: {status}")
         
         # Listing info columns
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("**📋 Listing Info**")
+            st.markdown("**Listing Info**")
             st.write(f"**ID:** {listing.get('listingId')}")
             st.write(f"**Title:** {listing.get('title')}")
             st.write(f"**Category:** {listing.get('category_name')}")
@@ -114,7 +114,7 @@ with tab2:
                 st.write(f"**Last Updated:** {str(last_update)[:10]}")
         
         with col2:
-            st.markdown("**👤 Provider Info**")
+            st.markdown("**Provider Info**")
             st.write(f"**Provider ID:** {listing.get('provider_id')}")
             st.write(f"**Name:** {listing.get('provider_name')}") 
             st.write(f"**Email:** {listing.get('provider_email', 'N/A')}")
@@ -122,7 +122,7 @@ with tab2:
         
         # Description
         st.divider()
-        st.markdown("**📝 Description**")
+        st.markdown("**Description**")
         st.write(listing.get('description', 'No description'))
         
         # Stats
@@ -142,7 +142,7 @@ with tab2:
         
         with col1:
             if status == 'active':
-                if st.button("🚫 Remove Listing", use_container_width=True, key="listing_remove_btn"):
+                if st.button("Remove Listing", use_container_width=True, key="listing_remove_btn"):
                     try:
                         resp = requests.delete(f"{API_URL}/listings/{listing.get('listingId')}")
                         if resp.status_code == 200:
@@ -154,7 +154,7 @@ with tab2:
                     except requests.exceptions.RequestException:
                         st.error("Could not connect to API")
             else:
-                if st.button("✅ Reactivate Listing", use_container_width=True, key="listing_reactivate_btn"):
+                if st.button("Reactivate Listing", use_container_width=True, key="listing_reactivate_btn"):
                     try:
                         resp = requests.put(
                             f"{API_URL}/listings/{listing.get('listingId')}",
@@ -170,19 +170,19 @@ with tab2:
                         st.error("Could not connect to API")
         
         with col2:
-            if st.button("✏️ Edit Listing", use_container_width=True, key="listing_edit_btn"):
+            if st.button("Edit Listing", use_container_width=True, key="listing_edit_btn"):
                 st.session_state.show_listing_edit_form = True
                 st.rerun()
         
         with col3:
-            if st.button("👤 View Provider", use_container_width=True, key="listing_view_provider_btn"):
+            if st.button("View Provider", use_container_width=True, key="listing_view_provider_btn"):
                 st.session_state.search_user_id = listing.get('provider_id')
                 st.switch_page("pages/32_User_Management.py")
         
         # Edit Form
         if st.session_state.show_listing_edit_form:
             st.divider()
-            st.subheader("✏️ Edit Listing")
+            st.subheader("Edit Listing")
             
             with st.form("listing_edit_form"):
                 new_price = st.number_input(
@@ -201,9 +201,9 @@ with tab2:
                 col_submit, col_cancel = st.columns(2)
                 
                 with col_submit:
-                    submit = st.form_submit_button("✅ Save Changes", use_container_width=True)
+                    submit = st.form_submit_button("Save Changes", use_container_width=True)
                 with col_cancel:
-                    cancel = st.form_submit_button("❌ Cancel", use_container_width=True)
+                    cancel = st.form_submit_button("Cancel", use_container_width=True)
                 
                 if submit:
                     try:
@@ -218,7 +218,7 @@ with tab2:
                         )
                         
                         if resp.status_code == 200:
-                            st.success("✅ Listing updated successfully!")
+                            st.success("Listing updated successfully!")
                             st.session_state.show_listing_edit_form = False
                             st.session_state.selected_listing = None
                             st.rerun()
@@ -298,10 +298,10 @@ with tab1:
                     st.metric("Total Listings", len(listings))
                 with col2:
                     active_count = sum(1 for l in listings if l.get("listingStatus") == "active")
-                    st.metric("✅ Active", active_count)
+                    st.metric("Active", active_count)
                 with col3:
                     removed_count = sum(1 for l in listings if l.get("listingStatus") == "removed")
-                    st.metric("🚫 Removed", removed_count)
+                    st.metric("Removed", removed_count)
                 
                 st.divider()
                 
@@ -322,9 +322,9 @@ with tab1:
                         with col1:
                             st.write(f"**#{listing_id}**")
                             if status == "removed":
-                                st.error("🚫 Removed")
+                                st.error("Removed")
                             else:
-                                st.success("✅ Active")
+                                st.success("Active")
                         
                         with col2:
                             st.write(f"**{title}**")
@@ -334,7 +334,7 @@ with tab1:
                         with col3:
                             st.write(f"**Provider:** {provider_name}")
                             if not provider_verified:
-                                st.warning("⚠️ Unverified Provider")
+                                st.warning("Unverified Provider")
                         
                         with col4:
                             if st.button("View", key=f"listing_view_card_{listing_id}", use_container_width=True):

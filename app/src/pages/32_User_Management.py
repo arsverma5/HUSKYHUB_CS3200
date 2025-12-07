@@ -5,7 +5,7 @@ from modules.nav import SideBarLinks
 
 SideBarLinks(show_home=True)
 
-st.title("👥 User Management")
+st.title("User Management")
 
 # API URL
 API_URL = "http://web-api:4000"
@@ -47,7 +47,7 @@ else:
 # SEARCH USERS TAB
 # ============================================================
 with tab2:
-    st.subheader("🔍 Search Users")
+    st.subheader("Search Users")
     
     # Search bar
     col1, col2 = st.columns([3, 1])
@@ -96,21 +96,21 @@ with tab2:
         # Status badge
         status = user.get('accountStatus', 'active')
         if status == 'suspended':
-            st.error("🚫 Account Status: Suspended")
+            st.error("Account Status: Suspended")
         else:
-            st.success("✅ Account Status: Active")
+            st.success("Account Status: Active")
         
         # User info columns
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("**📋 Basic Info**")
+            st.markdown("**Basic Info**")
             st.write(f"**ID:** {user.get('stuId')}")
             st.write(f"**Email:** {user.get('email')}")
             st.write(f"**Phone:** {user.get('phone') or 'N/A'}")
             st.write(f"**Major:** {user.get('major') or 'N/A'}")
             st.write(f"**Campus:** {user.get('campus') or 'N/A'}")
         with col2:
-            st.markdown("**📊 Stats**")
+            st.markdown("**Stats**")
             st.write(f"**Verified:** {'✅' if user.get('verifiedStatus') else '❌'}")
             st.write(f"**Services:** {user.get('total_services', 0)}")
             avg_rating = user.get('avg_rating') or 0
@@ -125,22 +125,22 @@ with tab2:
         # Bio section
         if user.get('bio'):
             st.divider()
-            st.markdown("**📝 Bio**")
+            st.markdown("**Bio**")
             st.write(user.get('bio'))
         
         # Action buttons
         st.divider()
-        st.markdown("**⚡ Admin Actions**")
+        st.markdown("**Admin Actions**")
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
             if status != 'suspended':
-                if st.button("🚫 Suspend User", use_container_width=True, key="suspend_user_btn"):
+                if st.button("Suspend User", use_container_width=True, key="suspend_user_btn"):
                     st.session_state.show_suspend_form = True
                     st.rerun()
             else:
-                if st.button("✅ Unsuspend User", use_container_width=True, key="unsuspend_user_btn"):
+                if st.button("Unsuspend User", use_container_width=True, key="unsuspend_user_btn"):
                     try:
                         resp = requests.put(f"{API_URL}/students/{user.get('stuId')}/unsuspend")
                         if resp.status_code == 200:
@@ -155,7 +155,7 @@ with tab2:
         
         with col2:
             if not user.get('verifiedStatus'):
-                if st.button("🔍 Verify User", use_container_width=True, key="verify_user_btn"):
+                if st.button("Verify User", use_container_width=True, key="verify_user_btn"):
                     try:
                         resp = requests.put(f"{API_URL}/students/{user.get('stuId')}/verify")
                         if resp.status_code == 200:
@@ -170,7 +170,7 @@ with tab2:
         # Suspend Form - shows when button is clicked
         if st.session_state.show_suspend_form and status != 'suspended':
             st.divider()
-            st.subheader("🚫 Create Suspension")
+            st.subheader("Create Suspension")
             
             with st.form("suspend_form"):
                 suspension_type = st.selectbox("Suspension Type", ["temp", "perm"])
@@ -194,9 +194,9 @@ with tab2:
                 col_submit, col_cancel = st.columns(2)
                 
                 with col_submit:
-                    submit = st.form_submit_button("✅ Confirm Suspension", use_container_width=True)
+                    submit = st.form_submit_button("Confirm Suspension", use_container_width=True)
                 with col_cancel:
-                    cancel = st.form_submit_button("❌ Cancel", use_container_width=True)
+                    cancel = st.form_submit_button("Cancel", use_container_width=True)
                 
                 if submit:
                     try:
@@ -209,7 +209,7 @@ with tab2:
                         resp = requests.post(f"{API_URL}/admin/suspensions", json=payload)
                         
                         if resp.status_code == 201:
-                            st.success("✅ User suspended successfully!")
+                            st.success("User suspended successfully!")
                             st.session_state.show_suspend_form = False
                             st.session_state.selected_user = None
                             st.rerun()
@@ -261,10 +261,10 @@ with tab1:
                     st.metric("Total Users", len(students))
                 with col2:
                     active_count = sum(1 for s in students if s.get("accountStatus") == "active")
-                    st.metric("✅ Active", active_count)
+                    st.metric("Active", active_count)
                 with col3:
                     suspended_count = sum(1 for s in students if s.get("accountStatus") == "suspended")
-                    st.metric("🚫 Suspended", suspended_count)
+                    st.metric("Suspended", suspended_count)
                 
                 st.divider()
                 
@@ -284,9 +284,9 @@ with tab1:
                         with col1:
                             st.write(f"**#{stu_id}**")
                             if status == "suspended":
-                                st.error("🚫 Suspended")
+                                st.error("Suspended")
                             else:
-                                st.success("✅ Active")
+                                st.success("Active")
                         
                         with col2:
                             st.write(f"**Name:** {full_name}")
@@ -324,7 +324,7 @@ with tab1:
 # SUSPENSIONS TAB
 # ============================================================
 with tab3:
-    st.subheader("🚫 Suspensions")
+    st.subheader("Suspensions")
     
     try:
         response = requests.get(f"{API_URL}/admin/suspensions")
