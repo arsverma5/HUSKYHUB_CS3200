@@ -7,6 +7,7 @@
 # -------------------------------------------
 
 
+from datetime import datetime, timedelta
 import streamlit as st
 from modules.nav import SideBarLinks 
 import requests
@@ -26,27 +27,96 @@ st.divider()
 
 # See Growth Dashboard button
 if st.button('Growth Dashboard', 
-            type='primary', 
-            use_container_width=True):
-    st.session_state['authenticated'] = True
-    st.session_state['role'] = 'PM'
-    st.session_state['first_name'] = 'Chris'
-    st.switch_page('pages/41_Growth_Dashboard.py')
+                type='primary', 
+                use_container_width=True):
+        st.session_state['authenticated'] = True
+        st.session_state['role'] = 'PM'
+        st.session_state['first_name'] = 'Chris'
+        st.switch_page('pages/41_Growth_Dashboard.py')
 
 # See Category Analytics page button
 if st.button('Category Analytics', 
-            type='primary', 
-            use_container_width=True):
-    st.session_state['authenticated'] = True
-    st.session_state['role'] = 'PM'
-    st.session_state['first_name'] = 'Chris'
-    st.switch_page('pages/42_Category_Analytics.py')
+                type='primary', 
+                use_container_width=True):
+        st.session_state['authenticated'] = True
+        st.session_state['role'] = 'PM'
+        st.session_state['first_name'] = 'Chris'
+        st.switch_page('pages/42_Category_Analytics.py')
 
 # See User Analytics page button
 if st.button('User Analytics', 
             type='primary', 
             use_container_width=True):
-    st.session_state['authenticated'] = True
-    st.session_state['role'] = 'PM'
-    st.session_state['first_name'] = 'Chris'
-    st.switch_page('pages/43_User_Analytics.py')
+        st.session_state['authenticated'] = True
+        st.session_state['role'] = 'PM'
+        st.session_state['first_name'] = 'Chris'
+        st.switch_page('pages/43_User_Analytics.py')
+    
+# give at a glance stats
+st.divider()
+st.subheader("At a Glance Stats")
+
+
+# get total users
+try:
+        response = requests.get("http://web-api:4000/students")
+   
+        if response.status_code == 200:
+                data = response.json()
+                total_users = len(data)
+                new_users = [user for user in data if (datetime.strptime(user['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ') >= datetime.now() - timedelta(days=30))]
+                percent_increase_users = round((len(new_users) / (total_users - len(new_users))) * 100) if (total_users - len(new_users)) > 0 else 0
+        
+        else:
+                total_users = "N/A"
+                percent_increase_users = "N/A"
+        
+except Exception as e:
+        total_users = "N/A"
+        percent_increase_users = "N/A"
+        st.error("Error fetching total users")
+
+# get total listings
+try:
+        response = requests.get("http://web-api:4000/listings")
+    
+        if response.status_code == 200:
+                data = response.json()
+                total_listings = len(data)
+                new_listings = [listing for listing in data if (datetime.strptime(listing['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ') >= datetime.now() - timedelta(days=30))]
+                percent_increase_listings = round((len(new_listings) / (total_listings - len(new_listings))) * 100) if (total_listings - len(new_listings)) > 0 else 0
+        else:
+                total_listings = "N/A"
+                percent_increase_listings = "N/A"
+        
+except Exception as e:
+        total_listings = "N/A"
+        percent_increase_listings = "N/A"
+        st.error("Error fetching total listings")
+        
+# get total transactions
+try:
+        response = requests.get("http://web-api:4000/transactions")
+    
+        if response.status_code == 200:
+                data = response.json()
+                total_transactions = len(data)
+                new_transactions = [txn for txn in data if (datetime.strptime(txn['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ') >= datetime.now() - timedelta(days=30))]
+                percent_increase_transactions = round((len(new_transactions) / (total_transactions - len(new_transactions))) * 100) if (total_transactions - len(new_transactions)) > 0 else 0
+        else:
+                total_transactions = "N/A"
+                percent_increase_transactions = "N/A"
+
+except Exception as e:
+        total_transactions = "N/A"
+        percent_increase_transactions = "N/A"
+        st.error("Error fetching total transactions")
+
+    
+col1, col2, col3 = st.columns(3)
+with col1:
+        st.metric("Total Users", total_users, percent_increase_users)
+with col2:
+        st.metric("Total Listings", total_listings, percent_increase_listings)
+with col3:
+        st.metric("Total Transactions", total_transactions, percent_increase_transactions)
