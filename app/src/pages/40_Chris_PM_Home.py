@@ -79,11 +79,9 @@ try:
     
         if response.status_code == 200:
                 data = response.json()
-                st.write(data)
+
                 total_listings = len(data)
-                st.write(total_listings)
                 new_listings = len([listing for listing in data if parsedate_to_datetime(listing['lastUpdate']) >= datetime.now(timezone.utc) - timedelta(days=30)])
-                st.write(new_listings)
                 percent_increase_listings = str(round((new_listings / (total_listings - new_listings)) * 100)) + "%" if (total_listings - new_listings) > 0 else "0%"
         else:
                 total_listings = "N/A"
