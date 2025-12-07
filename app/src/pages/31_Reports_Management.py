@@ -25,7 +25,7 @@ else:
 
 # Search tab
 with tab2:
-    st.subheader("🔍 Search Report by ID")
+    st.subheader("Search Report by ID")
     col1, col2 = st.columns([3, 1])
     with col1:
         report_id = st.number_input("Enter Report ID", min_value=1, step=1, value=1, label_visibility="collapsed")
@@ -41,12 +41,12 @@ with tab2:
                 st.session_state.show_resolve_form = False
                 st.rerun()
             elif response.status_code == 404:
-                st.warning(f"⚠️ Report #{report_id} not found")
+                st.warning(f"Report #{report_id} not found")
             else:
-                st.error("❌ An error occurred")
+                st.error("An error occurred")
                 
         except requests.exceptions.ConnectionError:
-            st.error("❌ Could not connect to API.")
+            st.error("Could not connect to API.")
 
     # Clear search button
     if st.session_state.search_result is not None and st.session_state.search_result not in ["not_found", "connection_error", "error"]:
@@ -61,7 +61,7 @@ with tab2:
         
         report = st.session_state.search_result
         
-        st.subheader(f"📄 Report #{report.get('reportId')} Details")
+        st.subheader(f"Report #{report.get('reportId')} Details")
         
         # Priority badge
         priority = report.get("priority", "MEDIUM")
@@ -76,7 +76,7 @@ with tab2:
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("**📋 Report Information**")
+            st.markdown("**Report Information**")
             st.write(f"**Report ID:** {report.get('reportId')}")
             st.write(f"**Date:** {report.get('reportDate')}")
             st.write(f"**Reason:** {report.get('reason')}")
@@ -84,7 +84,7 @@ with tab2:
             st.write(f"**Resolution:** {report.get('resolutionDate') or 'Pending'}")
         
         with col2:
-            st.markdown("**👤 Reporter**")
+            st.markdown("**Reporter**")
             st.write(f"**Name:** {report.get('reporter_fname')} {report.get('reporter_lname')}")
             st.write(f"**Email:** {report.get('reporter_email')}")
             st.write(f"**Status:** {report.get('reporter_account_status')}")
@@ -94,7 +94,7 @@ with tab2:
         col3, col4 = st.columns(2)
         
         with col3:
-            st.markdown("**🚨 Reported Student**")
+            st.markdown("**Reported Student**")
             st.write(f"**ID:** {report.get('reported_student_id')}")
             st.write(f"**Name:** {report.get('reported_fname')} {report.get('reported_lname')}")
             st.write(f"**Email:** {report.get('reported_email')}")
@@ -102,23 +102,23 @@ with tab2:
         
         with col4:
             if report.get('reported_listing_id'):
-                st.markdown("**📦 Reported Listing**")
+                st.markdown("**Reported Listing**")
                 st.write(f"**Title:** {report.get('listing_title')}")
                 st.write(f"**Status:** {report.get('listingStatus')}")
                 st.write(f"**Category:** {report.get('category_name')}")
             else:
-                st.markdown("**📦 Reported Listing**")
+                st.markdown("**Reported Listing**")
                 st.write("No listing associated")
     
         st.divider()
-        st.markdown("**⚡ Admin Actions**")
+        st.markdown("**Admin Actions**")
         
         # Only show buttons if not already resolved
         if not report.get('resolutionDate'):
             col5, col6, col7 = st.columns(3)
             
             with col5:
-                if st.button("✅ Resolve Report", use_container_width=True, key="resolve_btn"):
+                if st.button("Resolve Report", use_container_width=True, key="resolve_btn"):
                     st.session_state.show_resolve_form = True
                     st.rerun()
             
@@ -126,28 +126,28 @@ with tab2:
                 # Get the reported student ID
                 reported_id = report.get('reported_student_id')
                 if reported_id:
-                    if st.button("👤 View Reported User", use_container_width=True, key="view_user_btn"):
+                    if st.button("View Reported User", use_container_width=True, key="view_user_btn"):
                         st.session_state.search_user_id = reported_id
                         st.switch_page("pages/32_User_Management.py")
                 else:
-                    st.button("👤 View Reported User", use_container_width=True, disabled=True, key="view_user_btn_disabled")
+                    st.button("View Reported User", use_container_width=True, disabled=True, key="view_user_btn_disabled")
                     st.caption("No user ID available")
             
             with col7:
                 # Get the reported listing id
                 reported_list_id = report.get('listing_id')
                 if reported_list_id:
-                    if st.button("📦 View Listing", use_container_width=True, key="view_listing_btn"):
+                    if st.button("View Listing", use_container_width=True, key="view_listing_btn"):
                         st.session_state.search_listing_id = reported_list_id
                         st.switch_page("pages/33_Listing_Management.py")
                 else:
-                    st.button("📦 View Listing", use_container_width=True, disabled=True, key="view_listing_btn_disabled")
+                    st.button("View Listing", use_container_width=True, disabled=True, key="view_listing_btn_disabled")
                     st.caption("No Listing ID available")
 
             # Resolve form
             if st.session_state.show_resolve_form:
                 st.divider()
-                st.subheader("📝 Resolve Report")
+                st.subheader("Resolve Report")
                 
                 with st.form("resolve_form"):
                     resolution_notes = st.text_area(
@@ -159,9 +159,9 @@ with tab2:
                     col_submit, col_cancel = st.columns(2)
                     
                     with col_submit:
-                        submit = st.form_submit_button("✅ Confirm", use_container_width=True)
+                        submit = st.form_submit_button("Confirm", use_container_width=True)
                     with col_cancel:
-                        cancel = st.form_submit_button("❌ Cancel", use_container_width=True)
+                        cancel = st.form_submit_button("Cancel", use_container_width=True)
                     
                     if submit:
                         if not resolution_notes.strip():
@@ -174,7 +174,7 @@ with tab2:
                                 )
                                 
                                 if response.status_code == 200:
-                                    st.success("✅ Report resolved successfully!")
+                                    st.success("Report resolved successfully!")
                                     st.session_state.show_resolve_form = False
                                     st.session_state.search_result = None
                                     st.session_state.active_tab = "View All Reports"
@@ -189,7 +189,7 @@ with tab2:
                         st.session_state.show_resolve_form = False
                         st.rerun()
         else:
-            st.success("✅ This report has already been resolved")
+            st.success("This report has already been resolved")
 
 # All reports tab
 with tab1:
