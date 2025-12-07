@@ -194,7 +194,9 @@ INSERT INTO student (stuId, firstName, lastName, email, phone, major, verifiedSt
 (2, 'Michael', 'Rodriguez', 'rodriguez.m@northeastern.edu', '617-555-0102', 'Computer Science', TRUE, 'CS tutor specializing in Python and data structures', '2025-09-02 14:20:00'),
 (3, 'Jessica', 'Martinez', 'martinez.j@northeastern.edu', '617-555-0103', 'Business Administration', TRUE, 'Experienced tutor for Calc and Spanish', '2025-09-10 09:15:00'),
 (4, 'John', 'Doe', 'doe.j@northeastern.edu', '617-555-0104', 'Marketing', TRUE, 'Student looking for services', '2025-10-05 16:45:00'),
-(5, 'Sarah', 'Kim', 'kim.s@northeastern.edu', '617-555-0105', 'Engineering', FALSE, 'New student', '2025-11-20 11:00:00');
+(5, 'Sarah', 'Kim', 'kim.s@northeastern.edu', '617-555-0105', 'Engineering', FALSE, 'New student', '2025-11-20 11:00:00'),
+(6, 'Priya', 'Singh', 'priya.singh@northeastern.edu', '617-555-0106', 'Data Science', TRUE, 'Interested in ML projects', '2025-12-03 09:10:00'),
+(7, 'Alex', 'Nguyen', 'alex.nguyen@northeastern.edu', '617-555-0107', 'Design', FALSE, 'New to HuskyHub, exploring services', '2025-12-06 18:25:00');
 
 
 -- Insert sample categories
@@ -209,7 +211,9 @@ INSERT INTO category (categoryId, name, type, description) VALUES
 INSERT INTO listing (listingId, categoryId, providerId, title, description, price, unit, createDate, lastUpdate, listingStatus) VALUES
 (1, 1, 2, 'Python Tutoring', 'Expert Python tutoring for CS courses', 30.00, 'per hour', '2025-09-05 08:00:00', '2025-11-30 10:15:00', 'active'),
 (2, 1, 3, 'Calculus Tutoring', 'Help with Calculus I and II', 25.00, 'per hour', '2025-09-12 13:30:00', '2025-11-28 15:45:00', 'active'),
-(3, 2, 2, 'Moving Help', 'Help with apartment moves', 50.00, 'flat rate', '2025-10-01 09:45:00', '2025-12-02 12:00:00', 'active');
+(3, 2, 2, 'Moving Help', 'Help with apartment moves', 50.00, 'flat rate', '2025-10-01 09:45:00', '2025-12-02 12:00:00', 'active'),
+(4, 4, 2, 'Laptop Troubleshooting', 'Fixes, cleanup, and tune-ups for student laptops', 40.00, 'per hour', '2025-12-02 14:00:00', '2025-12-05 11:20:00', 'active'),
+(5, 1, 3, 'Statistics Crash Session', 'Intensive 2-hour stats prep for finals', 60.00, 'flat rate', '2025-12-04 17:30:00', '2025-12-06 10:05:00', 'active');
 
 
 -- Insert sample availability
