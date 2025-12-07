@@ -1,1 +1,0 @@
-# Page for admin to view and manage listings

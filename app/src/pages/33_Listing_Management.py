@@ -29,7 +29,7 @@ if "search_listing_id" in st.session_state and st.session_state.search_listing_i
     st.session_state.show_listing_edit_form = False
     
     try:
-        response = requests.get(f"{API_URL}/listings/listings/{listing_id}")
+        response = requests.get(f"{API_URL}/listings/{listing_id}")
         if response.status_code == 200:
             st.session_state.selected_listing = response.json()
     except Exception as e:
@@ -64,7 +64,7 @@ with tab2:
     
     if search_clicked:
         try:
-            response = requests.get(f"{API_URL}/listings/listings/{search_id}")
+            response = requests.get(f"{API_URL}/listings/{search_id}")
             if response.status_code == 200:
                 st.session_state.selected_listing = response.json()
                 st.session_state.search_listing_id_value = search_id
@@ -146,7 +146,7 @@ with tab2:
             if status == 'active':
                 if st.button("🚫 Remove Listing", use_container_width=True, key="listing_remove_btn"):
                     try:
-                        resp = requests.delete(f"{API_URL}/listings/listings/{listing.get('listingId')}")
+                        resp = requests.delete(f"{API_URL}/listings/{listing.get('listingId')}")
                         if resp.status_code == 200:
                             st.success("Listing removed!")
                             st.session_state.selected_listing = None
@@ -159,7 +159,7 @@ with tab2:
                 if st.button("✅ Reactivate Listing", use_container_width=True, key="listing_reactivate_btn"):
                     try:
                         resp = requests.put(
-                            f"{API_URL}/listings/listings/{listing.get('listingId')}",
+                            f"{API_URL}/listings/{listing.get('listingId')}",
                             json={"listingStatus": "active"}
                         )
                         if resp.status_code == 200:
@@ -215,7 +215,7 @@ with tab2:
                         }
                         
                         resp = requests.put(
-                            f"{API_URL}/listings/listings/{listing.get('listingId')}",
+                            f"{API_URL}/listings/{listing.get('listingId')}",
                             json=payload
                         )
                         
@@ -254,7 +254,7 @@ with tab1:
     with col2:
         # Fetch categories for dropdown
         try:
-            cat_response = requests.get(f"{API_URL}/listings/listings/categories")
+            cat_response = requests.get(f"{API_URL}/category")
             if cat_response.status_code == 200:
                 categories = cat_response.json()
                 category_options = [""] + [str(c.get('categoryId')) for c in categories]
@@ -286,7 +286,7 @@ with tab1:
         if search_term:
             params["q"] = search_term
         
-        response = requests.get(f"{API_URL}/listings/listings", params=params)
+        response = requests.get(f"{API_URL}/listings", params=params)
         
         if response.status_code == 200:
             listings = response.json()
