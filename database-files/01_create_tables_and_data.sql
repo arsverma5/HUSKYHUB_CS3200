@@ -189,12 +189,12 @@ CREATE TABLE admin_notes(
 
 
 -- Insert sample students
-INSERT INTO student (stuId, firstName, lastName, email, phone, major, verifiedStatus, bio) VALUES
-(1, 'Emma', 'Chen', 'chen.em@northeastern.edu', '617-555-0101', 'Computer Science', TRUE, 'CS major looking for tutoring help'),
-(2, 'Michael', 'Rodriguez', 'rodriguez.m@northeastern.edu', '617-555-0102', 'Computer Science', TRUE, 'CS tutor specializing in Python and data structures'),
-(3, 'Jessica', 'Martinez', 'martinez.j@northeastern.edu', '617-555-0103', 'Business Administration', TRUE, 'Experienced tutor for Calc and Spanish'),
-(4, 'John', 'Doe', 'doe.j@northeastern.edu', '617-555-0104', 'Marketing', TRUE, 'Student looking for services'),
-(5, 'Sarah', 'Kim', 'kim.s@northeastern.edu', '617-555-0105', 'Engineering', FALSE, 'New student');
+INSERT INTO student (stuId, firstName, lastName, email, phone, major, verifiedStatus, bio, joinDate) VALUES
+(1, 'Emma', 'Chen', 'chen.em@northeastern.edu', '617-555-0101', 'Computer Science', TRUE, 'CS major looking for tutoring help', '2025-08-15 10:30:00'),
+(2, 'Michael', 'Rodriguez', 'rodriguez.m@northeastern.edu', '617-555-0102', 'Computer Science', TRUE, 'CS tutor specializing in Python and data structures', '2025-09-02 14:20:00'),
+(3, 'Jessica', 'Martinez', 'martinez.j@northeastern.edu', '617-555-0103', 'Business Administration', TRUE, 'Experienced tutor for Calc and Spanish', '2025-09-10 09:15:00'),
+(4, 'John', 'Doe', 'doe.j@northeastern.edu', '617-555-0104', 'Marketing', TRUE, 'Student looking for services', '2025-10-05 16:45:00'),
+(5, 'Sarah', 'Kim', 'kim.s@northeastern.edu', '617-555-0105', 'Engineering', FALSE, 'New student', '2025-11-20 11:00:00');
 
 
 -- Insert sample categories
@@ -206,10 +206,10 @@ INSERT INTO category (categoryId, name, type, description) VALUES
 
 
 -- Insert sample listings
-INSERT INTO listing (listingId, categoryId, providerId, title, description, price, unit, lastUpdate, listingStatus) VALUES
-(1, 1, 2, 'Python Tutoring', 'Expert Python tutoring for CS courses', 30.00, 'per hour', NOW(), 'active'),
-(2, 1, 3, 'Calculus Tutoring', 'Help with Calculus I and II', 25.00, 'per hour', NOW(), 'active'),
-(3, 2, 2, 'Moving Help', 'Help with apartment moves', 50.00, 'flat rate', NOW(), 'active');
+INSERT INTO listing (listingId, categoryId, providerId, title, description, price, unit, createDate, lastUpdate, listingStatus) VALUES
+(1, 1, 2, 'Python Tutoring', 'Expert Python tutoring for CS courses', 30.00, 'per hour', '2025-09-05 08:00:00', '2025-11-30 10:15:00', 'active'),
+(2, 1, 3, 'Calculus Tutoring', 'Help with Calculus I and II', 25.00, 'per hour', '2025-09-12 13:30:00', '2025-11-28 15:45:00', 'active'),
+(3, 2, 2, 'Moving Help', 'Help with apartment moves', 50.00, 'flat rate', '2025-10-01 09:45:00', '2025-12-02 12:00:00', 'active');
 
 
 -- Insert sample availability
