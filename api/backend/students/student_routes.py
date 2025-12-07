@@ -477,3 +477,28 @@ def get_new_user_metrics():
         
     except Error as e:
         return jsonify({"error": str(e)}), 500
+
+# ============================================
+# PUT /students/{id}/verify
+# Verify a student account
+# Used by: Tim Green (User Story 3)
+# ============================================
+@students.route("/<int:student_id>/verify", methods=["PUT"])
+def verify_student(student_id):
+    try:
+        cursor = db.get_db().cursor()
+        
+        query = """
+            UPDATE student
+            SET verifiedStatus = 1
+            WHERE stuId = %s
+        """
+        
+        cursor.execute(query, (student_id,))
+        db.get_db().commit()
+        cursor.close()
+        
+        return jsonify({"message": "Student verified successfully"}), 200
+        
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
