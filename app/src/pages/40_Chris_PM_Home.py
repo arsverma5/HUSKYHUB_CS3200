@@ -7,7 +7,8 @@
 # -------------------------------------------
 
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 import streamlit as st
 from modules.nav import SideBarLinks 
 import requests
@@ -64,16 +65,12 @@ try:
         if response.status_code == 200:
                 data = response.json()
                 total_users = len(data)
-                new_users = [user for user in data if (datetime.strptime(user['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ') >= datetime.now() - timedelta(days=30))]
-                percent_increase_users = round((len(new_users) / (total_users - len(new_users))) * 100) if (total_users - len(new_users)) > 0 else 0
         
         else:
                 total_users = "N/A"
-                percent_increase_users = "N/A"
-        
+                
 except Exception as e:
         total_users = "N/A"
-        percent_increase_users = "N/A"
         st.error("Error fetching total users")
 
 # get total listings
@@ -82,9 +79,12 @@ try:
     
         if response.status_code == 200:
                 data = response.json()
+                st.write(data)
                 total_listings = len(data)
-                new_listings = [listing for listing in data if (datetime.strptime(listing['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ') >= datetime.now() - timedelta(days=30))]
-                percent_increase_listings = round((len(new_listings) / (total_listings - len(new_listings))) * 100) if (total_listings - len(new_listings)) > 0 else 0
+                st.write(total_listings)
+                new_listings = len([listing for listing in data if parsedate_to_datetime(listing['lastUpdate']) >= datetime.now(timezone.utc) - timedelta(days=30)])
+                st.write(new_listings)
+                percent_increase_listings = str(round((new_listings / (total_listings - new_listings)) * 100)) + "%" if (total_listings - new_listings) > 0 else "0%"
         else:
                 total_listings = "N/A"
                 percent_increase_listings = "N/A"
@@ -101,8 +101,8 @@ try:
         if response.status_code == 200:
                 data = response.json()
                 total_transactions = len(data)
-                new_transactions = [txn for txn in data if (datetime.strptime(txn['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ') >= datetime.now() - timedelta(days=30))]
-                percent_increase_transactions = round((len(new_transactions) / (total_transactions - len(new_transactions))) * 100) if (total_transactions - len(new_transactions)) > 0 else 0
+                new_transactions = len([txn for txn in data if (datetime.strptime(txn['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ') >= datetime.now() - timedelta(days=30))])
+                percent_increase_transactions = str(round((new_transactions / (total_transactions - new_transactions)) * 100)) + "%" if (total_transactions - new_transactions) > 0 else "0%"
         else:
                 total_transactions = "N/A"
                 percent_increase_transactions = "N/A"
@@ -115,7 +115,7 @@ except Exception as e:
     
 col1, col2, col3 = st.columns(3)
 with col1:
-        st.metric("Total Users", total_users, percent_increase_users)
+        st.metric("Total Users", total_users)
 with col2:
         st.metric("Total Listings", total_listings, percent_increase_listings)
 with col3:
