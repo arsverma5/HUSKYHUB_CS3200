@@ -194,6 +194,8 @@ prev_start = now - timedelta(days=60)
 prev_end = recent_start
 
 # Aggregations per category
+df_txn_recent = pd.DataFrame(columns=['date','amt','cat'])
+df_txn_prev = pd.DataFrame(columns=['date','amt','cat'])
 if not df_txn.empty:
 	df_txn_recent = df_txn[df_txn['date'] >= recent_start]
 	df_txn_prev = df_txn[(df_txn['date'] >= prev_start) & (df_txn['date'] < prev_end)]
