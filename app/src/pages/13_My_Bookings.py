@@ -14,7 +14,6 @@ st.write(f"Manage your service appointments, {st.session_state['first_name']}")
 API_URL = "http://web-api:4000"
 user_id = st.session_state.get('user_id', 1)
 
-# Filter tabs
 tab1, tab2, tab3 = st.tabs(["Pending", "Confirmed", "Completed"])
 
 try:
@@ -24,12 +23,10 @@ try:
     if response.status_code == 200:
         all_bookings = response.json()
         
-        # Filter by status
         pending_bookings = [b for b in all_bookings if b.get('transactStatus') == 'requested']
         confirmed_bookings = [b for b in all_bookings if b.get('transactStatus') == 'confirmed']
         completed_bookings = [b for b in all_bookings if b.get('transactStatus') == 'completed']
         
-        # Pending tab
         with tab1:
             if pending_bookings:
                 for booking in pending_bookings:
@@ -58,7 +55,6 @@ try:
             else:
                 st.info('No pending bookings')
         
-        # Confirmed tab
         with tab2:
             if confirmed_bookings:
                 for booking in confirmed_bookings:
@@ -69,7 +65,6 @@ try:
             else:
                 st.info('No confirmed bookings')
         
-        # Completed tab
         with tab3:
             if completed_bookings:
                 for booking in completed_bookings:

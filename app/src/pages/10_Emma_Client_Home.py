@@ -5,8 +5,6 @@ import streamlit as st
 from modules.nav import SideBarLinks
 
 st.set_page_config(layout='wide')
-
-# Show appropriate sidebar links
 SideBarLinks()
 
 st.title(f"Welcome Student, {st.session_state['first_name']}! 🎓")
