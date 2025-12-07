@@ -238,3 +238,14 @@ VALUES
 (1, 1, 4, NULL, NULL, NOW(), NULL, 'Inappropriate listing content', 'User posted suspicious pricing and contact information');
 
 
+-- Insert sample transactions
+INSERT INTO transact (transactId, buyerId, listId, bookDate, transactStatus, fulfillmentDate, paymentAmt, platformFee, agreementDetails) VALUES
+(1, 1, 1, '2025-12-01 15:31:03', 'completed', '2025-12-01 16:31:03', 30.00, 3.00, '1 hour Python tutoring'),
+(2, 4, 1, '2025-11-25 16:00:00', 'completed', '2025-11-25 17:00:00', 30.00, 3.00, 'Python session for project help'),
+(3, 5, 2, '2025-11-15 10:00:00', 'completed', '2025-11-15 11:00:00', 25.00, 2.50, 'Calculus tutoring - 1 hour'),
+(4, 3, 3, '2025-10-20 09:00:00', 'completed', '2025-10-20 12:00:00', 50.00, 5.00, 'Moving help - 3 hours'),
+(5, 2, 3, '2025-10-25 11:00:00', 'cancelled', NULL, 0.00, 0.00, 'Cancelled booking'),
+(6, 1, 2, '2025-09-20 12:00:00', 'completed', '2025-09-20 13:00:00', 25.00, 2.50, 'Old transaction sample'),
+(7, 4, 1, '2025-11-05 14:00:00', 'confirmed', NULL, 30.00, 3.00, 'Booked, awaiting fulfillment');
+
+
