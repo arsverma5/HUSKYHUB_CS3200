@@ -26,11 +26,10 @@ services:
   db:
     env_file:
       - ./api/.env
-    image: mysql:9
+    image: mysql:8.0
     container_name: mysql_db
     hostname: db
     volumes:
-      - "./database-files:/docker-entrypoint-initdb.d/:ro"
       - "mysql_data:/var/lib/mysql"
     ports:
       - 3200:3306
