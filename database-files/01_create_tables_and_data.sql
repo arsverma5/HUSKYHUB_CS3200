@@ -20,7 +20,7 @@ CREATE TABLE student(
    joinDate datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
    accountStatus ENUM('active','suspended','deleted') NOT NULL DEFAULT 'active',
    verifiedStatus tinyint(1) DEFAULT FALSE,
-   profilePhotoUrl varchar(150),
+   profilePhotoUrl varchar(500),
    INDEX idx_first_name (firstName),
    INDEX idx_last_name (lastName)
 );

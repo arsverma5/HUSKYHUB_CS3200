@@ -26,13 +26,13 @@ services:
   db:
     env_file:
       - ./api/.env
-    image: mysql:8.0
+    build: ./mysql-init
     container_name: mysql_db
     hostname: db
     volumes:
       - "mysql_data:/var/lib/mysql"
     ports:
-      - 3200:3306
+      - "3200:3306"
 
 volumes:
   mysql_data:

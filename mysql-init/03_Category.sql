@@ -1,3 +1,4 @@
+USE HuskyHub;
 insert into category (categoryId, name, type, description) values (1, 'test prep', 'product', 'Vestibulum ac est lacinia nisi venenatis tristique. Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat.');
 insert into category (categoryId, name, type, description) values (2, 'tutoring', 'product', 'Aenean lectus. Pellentesque eget nunc.');
 insert into category (categoryId, name, type, description) values (3, 'moving', 'service', 'In hac habitasse platea dictumst. Etiam faucibus cursus urna. Ut tellus. Nulla ut erat id mauris vulputate elementum.');
