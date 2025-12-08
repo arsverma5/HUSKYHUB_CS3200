@@ -82,7 +82,7 @@ def transactions_to_df(transactions):
 		dt = parse_date(t['bookDate'])
 		if not dt:
 			continue
-		user_id = t.get('buyerId')
+		user_id = t.get('buyer_id')
 		rows.append({'user_id': user_id, '_parsed_date': dt, **t})
 	if not rows:
 		return pd.DataFrame()
@@ -181,19 +181,6 @@ with col3:
 	st.caption('Users with >=1 transaction in last 30 days')
 
 st.divider()
-
-# Debug info
-with st.expander("Debug Info"):
-	st.write(f"Total transactions loaded: {len(df_txn)}")
-	st.write(f"Transaction columns: {list(df_txn.columns) if not df_txn.empty else 'N/A'}")
-	if not df_txn.empty:
-		st.write(f"Sample transaction data:")
-		st.dataframe(df_txn[['user_id', '_parsed_date', 'buyerId']].head(3) if 'buyerId' in df_txn.columns else df_txn[['user_id', '_parsed_date']].head(3))
-	st.write(f"Users in recent 30d with transactions: {active_recent}")
-	st.write(f"Total users loaded: {len(df_users)}")
-	if not df_users.empty:
-		st.write(f"Sample user data:")
-		st.dataframe(df_users[['user_id', 'stuId', '_parsed_date']].head(3))
 
 # --- Charts ---
 st.subheader('User Trends')
