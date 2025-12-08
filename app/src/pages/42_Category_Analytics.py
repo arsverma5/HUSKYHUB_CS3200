@@ -26,20 +26,11 @@ def parse_date(val):
 			return dt.replace(tzinfo=timezone.utc)
 		return dt
 	except Exception:
-		pass
-	try:
-		if isinstance(val, str) and val.endswith('Z'):
-			val = val.replace('Z', '+00:00')
-		return datetime.fromisoformat(val)
-	except Exception:
 		return None
 
 
 def get_category_from_rec(rec):
-	for k in ('category', 'categoryName', 'category_name', 'category_id', 'cat'):
-		if k in rec and rec[k]:
-			return rec[k]
-	return None
+	return rec.get('category_name', 'Unknown')
 
 
 # --- Fetch data (direct try/except) ---
@@ -63,51 +54,33 @@ except Exception as e:
 	transactions = []
 	st.error(f"Error fetching transactions: {e}")
 
-# Build listing id -> category map for fallback
+# Build listing id -> category map
 listing_cat_map = {}
 for l in listings:
-	lid = None
-	for k in ('id', 'listingId', 'listing_id'):
-		if k in l and l[k] is not None:
-			lid = l[k]
-			break
-	cat = get_category_from_rec(l) or 'Unknown'
-	if lid is not None:
-		listing_cat_map[str(lid)] = cat
-
-# Helper to find amount field in a transaction record
-def find_amount(rec):
-	for k in ('amount', 'total', 'price', 'value', 'amount_cents'):
-		if k in rec and rec[k] is not None:
-			return rec[k]
-	return None
+	if 'listingId' in l and 'category_name' in l:
+		listing_cat_map[str(l['listingId'])] = l['category_name']
 
 
 # Prepare transactions DataFrame with parsed dates, amount, and category
 rows = []
 for t in transactions:
-	dt = None
-	for k in ('createdAt', 'created_at', 'timestamp', 'time'):
-		if k in t and t[k]:
-			dt = parse_date(t[k])
-			break
+	if 'bookDate' not in t or not t['bookDate']:
+		continue
+	
+	dt = parse_date(t['bookDate'])
 	if not dt:
-		# try any value
-		for v in t.values():
-			if isinstance(v, str):
-				dt = parse_date(v)
-				if dt:
-					break
-	amt = find_amount(t)
-	cat = get_category_from_rec(t)
-	# try mapping via listing id
-	if not cat:
-		for k in ('listingId', 'listing_id', 'listing'):
-			if k in t and t[k] is not None:
-				cat = listing_cat_map.get(str(t[k]), None)
-				if cat:
-					break
-	rows.append({'_parsed_date': dt, '_amt': float(amt) if amt is not None else np.nan, '_cat': cat or 'Unknown'})
+		continue
+	
+	amt = t.get('paymentAmt')
+	cat = t.get('category_name', 'Unknown')
+	
+	# Fallback to map if no category in transaction
+	if not cat or cat == 'Unknown':
+		listing_id = t.get('listingId')
+		if listing_id:
+			cat = listing_cat_map.get(str(listing_id), 'Unknown')
+	
+	rows.append({'_parsed_date': dt, '_amt': float(amt) if amt is not None else np.nan, '_cat': cat})
 
 if rows:
 	df_txn = pd.DataFrame(rows)
@@ -118,16 +91,8 @@ else:
 # Prepare listings DataFrame for supply counts
 rows_l = []
 for l in listings:
-	cat = get_category_from_rec(l) or 'Unknown'
-	# determine active
-	is_active = False
-	for k in ('active', 'isActive', 'status'):
-		if k in l:
-			v = l.get(k)
-			if isinstance(v, bool):
-				is_active = v
-			elif isinstance(v, str) and v.lower() in ('active', 'available', 'true', '1'):
-				is_active = True
+	cat = l.get('category_name', 'Unknown')
+	is_active = l.get('listingStatus') == 'active'
 	rows_l.append({'_cat': cat, 'is_active': is_active})
 
 if rows_l:
@@ -166,8 +131,7 @@ if not supply_demand.empty:
 	supply_demand['_cat'] = supply_demand['_cat'].astype(str)
 
 
-# --- UI: Left (top categories) and Right (supply vs demand) ---
-left, right = st.columns([1, 2])
+left, spacer, right = st.columns([1, 0.2, 2])
 
 with left:
 	st.subheader('Top Categories (by $ in last 30d)')

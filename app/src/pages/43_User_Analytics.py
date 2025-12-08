@@ -26,27 +26,11 @@ def parse_date(val):
 			return dt.replace(tzinfo=timezone.utc)
 		return dt
 	except Exception:
-		pass
-	try:
-		if isinstance(val, str) and val.endswith('Z'):
-			val = val.replace('Z', '+00:00')
-		return datetime.fromisoformat(val)
-	except Exception:
 		return None
 
 
-def find_date_in_record(rec, candidates=('createdAt', 'created_at', 'joinedAt', 'lastLogin', 'last_update')):
-	for k in candidates:
-		if k in rec and rec[k]:
-			return parse_date(rec[k])
-	return None
-
-
 def get_campus(rec):
-	for k in ('campus', 'campusName', 'campus_id', 'campusId', 'campus_name'):
-		if k in rec and rec[k]:
-			return rec[k]
-	return 'Unknown'
+	return rec.get('campus', 'Unknown')
 
 
 # --- Fetch data --- (direct try/except style)
@@ -76,36 +60,34 @@ except Exception as e:
 def students_to_df(students):
 	rows = []
 	for s in students:
-		dt = find_date_in_record(s, ('createdAt', 'created_at', 'joinedAt', 'signup_date'))
+		if 'joinDate' not in s or not s['joinDate']:
+			continue
+		dt = parse_date(s['joinDate'])
+		if not dt:
+			continue
 		campus = get_campus(s)
-		user_id = None
-		for k in ('id', 'studentId', 'userId', 'user_id', 'student_id'):
-			if k in s:
-				user_id = s.get(k)
-				break
-		rows.append({'user_id': user_id, '_parsed_date': dt, '_campus': campus, **s})
+		rows.append({'user_id': s.get('stuId'), '_parsed_date': dt, '_campus': campus, **s})
 	if not rows:
 		return pd.DataFrame()
 	df = pd.DataFrame(rows)
-	df['_parsed_date'] = pd.to_datetime(df['_parsed_date']).dt.tz_localize('UTC', ambiguous='NaT', nonexistent='NaT') if not pd.api.types.is_datetime64_any_dtype(df['_parsed_date']) else pd.to_datetime(df['_parsed_date'])
+	df['_parsed_date'] = pd.to_datetime(df['_parsed_date'], utc=True)
 	return df
 
 
 def transactions_to_df(transactions):
 	rows = []
 	for t in transactions:
-		dt = find_date_in_record(t, ('createdAt', 'created_at', 'timestamp'))
-		# find user id on txn
-		user_id = None
-		for k in ('studentId', 'student_id', 'userId', 'user_id', 'buyerId'):
-			if k in t and t[k] is not None:
-				user_id = t[k]
-				break
+		if 'bookDate' not in t or not t['bookDate']:
+			continue
+		dt = parse_date(t['bookDate'])
+		if not dt:
+			continue
+		user_id = t.get('buyerId')
 		rows.append({'user_id': user_id, '_parsed_date': dt, **t})
 	if not rows:
 		return pd.DataFrame()
 	df = pd.DataFrame(rows)
-	df['_parsed_date'] = pd.to_datetime(df['_parsed_date']).dt.tz_localize('UTC', ambiguous='NaT', nonexistent='NaT') if not pd.api.types.is_datetime64_any_dtype(df['_parsed_date']) else pd.to_datetime(df['_parsed_date'])
+	df['_parsed_date'] = pd.to_datetime(df['_parsed_date'], utc=True)
 	return df
 
 
@@ -147,19 +129,8 @@ total_users = len(df_users) if not df_users.empty else len(students) if students
 
 # New users
 if df_users.empty:
-	# fallback: scan raw students for dates
 	new_users_recent = 0
 	new_users_prev = 0
-	for s in students:
-		dt = find_date_in_record(s, ('createdAt', 'created_at', 'joinedAt', 'signup_date'))
-		if not dt:
-			continue
-		if dt.tzinfo is None:
-			dt = dt.replace(tzinfo=timezone.utc)
-		if dt >= recent_start:
-			new_users_recent += 1
-		elif prev_start <= dt < prev_end:
-			new_users_prev += 1
 else:
 	df_users['_parsed_date'] = pd.to_datetime(df_users['_parsed_date'], utc=True)
 	new_users_recent = df_users[df_users['_parsed_date'] >= recent_start].shape[0]
@@ -174,8 +145,10 @@ if df_txn.empty:
 	active_prev = 0
 else:
 	df_txn['_parsed_date'] = pd.to_datetime(df_txn['_parsed_date'], utc=True)
-	active_recent = df_txn[df_txn['_parsed_date'] >= recent_start]['user_id'].dropna().nunique()
-	active_prev = df_txn[(df_txn['_parsed_date'] >= prev_start) & (df_txn['_parsed_date'] < prev_end)]['user_id'].dropna().nunique()
+	txn_recent = df_txn[df_txn['_parsed_date'] >= recent_start]
+	txn_prev = df_txn[(df_txn['_parsed_date'] >= prev_start) & (df_txn['_parsed_date'] < prev_end)]
+	active_recent = txn_recent['user_id'].dropna().nunique() if not txn_recent.empty else 0
+	active_prev = txn_prev['user_id'].dropna().nunique() if not txn_prev.empty else 0
 
 pct_change_active = (round((active_recent - active_prev) / active_prev * 100, 1)
 					 if active_prev > 0 else (100.0 if active_recent > 0 else 0.0))
@@ -208,6 +181,19 @@ with col3:
 	st.caption('Users with >=1 transaction in last 30 days')
 
 st.divider()
+
+# Debug info
+with st.expander("Debug Info"):
+	st.write(f"Total transactions loaded: {len(df_txn)}")
+	st.write(f"Transaction columns: {list(df_txn.columns) if not df_txn.empty else 'N/A'}")
+	if not df_txn.empty:
+		st.write(f"Sample transaction data:")
+		st.dataframe(df_txn[['user_id', '_parsed_date', 'buyerId']].head(3) if 'buyerId' in df_txn.columns else df_txn[['user_id', '_parsed_date']].head(3))
+	st.write(f"Users in recent 30d with transactions: {active_recent}")
+	st.write(f"Total users loaded: {len(df_users)}")
+	if not df_users.empty:
+		st.write(f"Sample user data:")
+		st.dataframe(df_users[['user_id', 'stuId', '_parsed_date']].head(3))
 
 # --- Charts ---
 st.subheader('User Trends')
