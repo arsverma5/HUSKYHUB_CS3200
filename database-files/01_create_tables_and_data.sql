@@ -189,14 +189,14 @@ CREATE TABLE admin_notes(
 
 
 -- Insert sample students
-INSERT INTO student (stuId, firstName, lastName, email, phone, major, verifiedStatus, bio, joinDate) VALUES
-(1, 'Emma', 'Chen', 'chen.em@northeastern.edu', '617-555-0101', 'Computer Science', TRUE, 'CS major looking for tutoring help', '2025-08-15 10:30:00'),
-(2, 'Michael', 'Rodriguez', 'rodriguez.m@northeastern.edu', '617-555-0102', 'Computer Science', TRUE, 'CS tutor specializing in Python and data structures', '2025-09-02 14:20:00'),
-(3, 'Jessica', 'Martinez', 'martinez.j@northeastern.edu', '617-555-0103', 'Business Administration', TRUE, 'Experienced tutor for Calc and Spanish', '2025-09-10 09:15:00'),
-(4, 'John', 'Doe', 'doe.j@northeastern.edu', '617-555-0104', 'Marketing', TRUE, 'Student looking for services', '2025-10-05 16:45:00'),
-(5, 'Sarah', 'Kim', 'kim.s@northeastern.edu', '617-555-0105', 'Engineering', FALSE, 'New student', '2025-11-20 11:00:00'),
-(6, 'Priya', 'Singh', 'priya.singh@northeastern.edu', '617-555-0106', 'Data Science', TRUE, 'Interested in ML projects', '2025-12-03 09:10:00'),
-(7, 'Alex', 'Nguyen', 'alex.nguyen@northeastern.edu', '617-555-0107', 'Design', FALSE, 'New to HuskyHub, exploring services', '2025-12-06 18:25:00');
+INSERT INTO student (stuId, firstName, lastName, email, phone, major, campus, verifiedStatus, bio, joinDate) VALUES
+(1, 'Emma', 'Chen', 'chen.em@northeastern.edu', '617-555-0101', 'Computer Science', 'bostn', TRUE, 'CS major looking for tutoring help', '2025-08-15 10:30:00'),
+(2, 'Michael', 'Rodriguez', 'rodriguez.m@northeastern.edu', '617-555-0102', 'Computer Science', 'londn', TRUE, 'CS tutor specializing in Python and data structures', '2025-09-02 14:20:00'),
+(3, 'Jessica', 'Martinez', 'martinez.j@northeastern.edu', '617-555-0103', 'Business Administration', 'bostn', TRUE, 'Experienced tutor for Calc and Spanish', '2025-09-10 09:15:00'),
+(4, 'John', 'Doe', 'doe.j@northeastern.edu', '617-555-0104', 'Marketing', 'londn', TRUE, 'Student looking for services', '2025-10-05 16:45:00'),
+(5, 'Sarah', 'Kim', 'kim.s@northeastern.edu', '617-555-0105', 'Engineering', 'bostn', FALSE, 'New student', '2025-11-20 11:00:00'),
+(6, 'Priya', 'Singh', 'priya.singh@northeastern.edu', '617-555-0106', 'Data Science', 'londn', TRUE, 'Interested in ML projects', '2025-12-03 09:10:00'),
+(7, 'Alex', 'Nguyen', 'alex.nguyen@northeastern.edu', '617-555-0107', 'Design', 'bostn', FALSE, 'New to HuskyHub, exploring services', '2025-12-06 18:25:00');
 
 
 -- Insert sample categories
