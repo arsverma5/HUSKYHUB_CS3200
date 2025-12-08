@@ -11,10 +11,8 @@ SideBarLinks()
 st.title('🔍 Browse Services')
 st.write('Find trusted student services on campus')
 
-# API endpoint
 API_URL = "http://web-api:4000"
 
-# Search and filter section
 st.write('### Search & Filter')
 
 col1, col2, col3 = st.columns(3)
@@ -27,7 +25,6 @@ with col1:
     )
 
 with col2:
-    # Search by keyword
     search_term = st.text_input('Search by keyword')
 
 with col3:
@@ -37,7 +34,6 @@ with col3:
         ['Price (Low to High)', 'Price (High to Low)', 'Rating (High to Low)']
     )
 
-# Build API request
 params = {}
 if category != 'All':
     params['category'] = category
@@ -51,7 +47,6 @@ try:
     if response.status_code == 200:
         listings = response.json()
         
-        # Sort in Python based on selection
         if 'Price (Low' in sort_by:
             listings.sort(key=lambda x: x.get('price', 999))
         elif 'Price (High' in sort_by:
@@ -62,7 +57,6 @@ try:
         st.write(f'### Found {len(listings)} services')
         st.write('---')
         
-        # Display listings in cards
         for listing in listings:
             with st.container():
                 col1, col2, col3 = st.columns([3, 1, 1])
@@ -71,14 +65,14 @@ try:
                     st.subheader(listing.get('title', 'Untitled'))
                     st.write(f"**Provider:** {listing.get('provider_name', 'Unknown')}")
                     if listing.get('verifiedStatus'):
-                        st.markdown("✅ **Verified NEU Student**")
+                        st.markdown("**Verified NEU Student**")
                     st.write(listing.get('description', '')[:150] + '...')
                 
                 with col2:
                     st.metric("Price", f"${listing.get('price', 0)}/{listing.get('unit', 'hour')}")
                     rating = listing.get('avg_rating')
                     if rating:
-                        st.metric("Rating", f"⭐ {float(rating):.1f}")
+                        st.metric("Rating", f"{float(rating):.1f}")
                     else:
                         st.metric("Rating", "No reviews")
                 

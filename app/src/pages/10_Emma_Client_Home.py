@@ -12,7 +12,7 @@ st.write('')
 st.write('')
 st.write('### What would you like to do today?')
 
-# Button to browse services (User Story 1.1)
+# Button to browse services (User Story 1   .1)
 if st.button('Browse & Search Services', 
              type='primary',
              use_container_width=True):

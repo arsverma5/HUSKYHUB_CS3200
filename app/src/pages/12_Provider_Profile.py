@@ -56,7 +56,7 @@ try:
         
         # Reviews section
         st.write('---')
-        st.subheader('📝 Reviews')
+        st.subheader('Reviews')
         
         reviews_response = requests.get(f'{API_URL}/listings/{listing_id}/reviews')
         
