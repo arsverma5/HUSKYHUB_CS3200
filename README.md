@@ -14,7 +14,7 @@ A peer-to-peer service marketplace for Northeastern University students. Student
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/arsverma5/HUSKYHUB_CS3200.git>
 cd HUSKYHUB_CS3200
 ```
 
@@ -23,12 +23,13 @@ cd HUSKYHUB_CS3200
 Create a file named `.env` inside the `api/` folder with the following contents:
 
 ```env
-SECRET_KEY=your_secret_key_here
+SECRET_KEY=huskyHub_S3cR3T!Key2025
 DB_USER=root
 DB_HOST=db
 DB_PORT=3306
 DB_NAME=HuskyHub
 MYSQL_ROOT_PASSWORD=huskyhub_password123
+MYSQL_DATABASE=HuskyHub
 ```
 
 ### 3. Start the Application
